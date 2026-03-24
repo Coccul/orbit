@@ -53,6 +53,23 @@
     .ln-hour    { position:absolute; left:0; right:0; border-top:1px solid rgba(60,60,67,0.2);  pointer-events:none; }
     .ln-half    { position:absolute; left:0; right:0; border-top:1px solid rgba(60,60,67,0.1);  pointer-events:none; }
     .ln-quarter { position:absolute; left:0; right:0; border-top:1px solid rgba(60,60,67,0.06); pointer-events:none; }
+    /* grid overlay drawn ON TOP of blocks */
+    .tl-grid.with-quarter::after {
+      content:''; position:absolute; inset:0; pointer-events:none; z-index:15;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.22) 0px,   rgba(0,0,0,0.22) 1px,
+        transparent 1px,         transparent 22px,
+        rgba(0,0,0,0.07) 22px,  rgba(0,0,0,0.07) 23px,
+        transparent 23px,        transparent 44px,
+        rgba(0,0,0,0.13) 44px,  rgba(0,0,0,0.13) 45px,
+        transparent 45px,        transparent 67px,
+        rgba(0,0,0,0.07) 67px,  rgba(0,0,0,0.07) 68px,
+        transparent 68px,        transparent 90px
+      );
+      background-size: 100% 90px;
+      background-position: 0 0;
+    }
     .ln-now     { position:absolute; left:0; right:0; border-top:2px solid var(--red); z-index:10; pointer-events:none; }
     .ln-now-dot { position:absolute; left:-4px; top:-4px; width:8px; height:8px; background:var(--red); border-radius:50%; }
     /* blocks */
@@ -267,7 +284,7 @@ function buildTimelineGrid(containerId, blocks, onTapBlock, onTapEmpty, showQuar
   const nm=nowMin(), ny=(Math.min(nm,END)-START)*PX
   const nowLine=nm>=START&&nm<=END?`<div class="ln-now" style="top:${ny}px"><div class="ln-now-dot"></div></div>`:''
 
-  const grid=document.createElement('div'); grid.className='tl-grid'; grid.style.height=totalH+'px'
+  const grid=document.createElement('div'); grid.className='tl-grid'+(showQuarter?' with-quarter':''); grid.style.height=totalH+'px'
   grid.innerHTML=lines+nowLine
 
   blocks.forEach(b=>{
