@@ -746,11 +746,55 @@ class Orbit(rumps.App):
                         })
                     except ValueError:
                         self._send_json({"error": "Invalid date format. Use YYYY-MM-DD"}, 400)
+                elif self.path == "/" or self.path == "/index.html":
+                    pwa = Path(__file__).parent / "pwa.html"
+                    try:
+                        body = pwa.read_bytes()
+                        self.send_response(200)
+                        self.send_header("Content-Type", "text/html; charset=utf-8")
+                        self.send_header("Access-Control-Allow-Origin", "*")
+                        self.end_headers()
+                        self.wfile.write(body)
+                    except Exception:
+                        self.send_response(404); self.end_headers()
+                elif self.path.startswith("/planner"):
+                    parts = [p for p in self.path.split("/") if p]
+                    target = parts[1] if len(parts) > 1 else date.today().strftime("%Y-%m-%d")
+                    try:
+                        sched = APP_SUPPORT / "schedules.json"
+                        all_data = json.loads(sched.read_text(encoding="utf-8")) if sched.exists() else {}
+                        day = all_data.get(target, {})
+                        self._send_json({"date": target, "blocks": day.get("blocks", [])})
+                    except Exception as e:
+                        self._send_json({"error": str(e)}, 500)
                 else:
                     self.send_response(404); self.end_headers()
 
+            def do_OPTIONS(self):
+                self.send_response(204)
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+                self.send_header("Access-Control-Allow-Headers", "Content-Type")
+                self.end_headers()
+
             def do_POST(self):
-                if self.path == "/command":
+                if self.path.startswith("/planner/") and "/block/" in self.path and self.path.endswith("/toggle"):
+                    # POST /planner/YYYY-MM-DD/block/{id}/toggle
+                    parts = [p for p in self.path.split("/") if p]
+                    target, block_id = parts[1], parts[3]
+                    try:
+                        sched = APP_SUPPORT / "schedules.json"
+                        all_data = json.loads(sched.read_text(encoding="utf-8")) if sched.exists() else {}
+                        blocks = all_data.setdefault(target, {}).setdefault("blocks", [])
+                        for b in blocks:
+                            if b.get("id") == block_id:
+                                b["done"] = not b.get("done", False)
+                                break
+                        sched.write_text(json.dumps(all_data, ensure_ascii=False, indent=2), encoding="utf-8")
+                        self._send_json({"ok": True})
+                    except Exception as e:
+                        self._send_json({"error": str(e)}, 500)
+                elif self.path == "/command":
                     n = int(self.headers.get("Content-Length", 0))
                     try:
                         cmd = json.loads(self.rfile.read(n))

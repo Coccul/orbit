@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#ffffff">
+  <title>Orbit</title>
+  <style>
+    :root {
+      --bg: #F2F2F7;
+      --card: #FFFFFF;
+      --text: #000000;
+      --sub: #8E8E93;
+      --border: rgba(60,60,67,0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #app { flex: 1; overflow: hidden; position: relative; }
+    .page {
+      position: absolute; inset: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom));
+      display: none;
+    }
+    .page.active { display: block; }
+
+    /* Tab bar */
+    #tabbar {
+      display: flex;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .tab {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 2px;
+      padding: 8px 0;
+      border: none; background: none; cursor: pointer;
+      color: var(--sub); font-size: 10px; font-family: inherit;
+    }
+    .tab.active { color: #007AFF; }
+    .tab-icon { font-size: 22px; line-height: 1; }
+
+    /* Card */
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    /* Current task */
+    #current-card {
+      text-align: center;
+      padding: 28px 16px 20px;
+      border-left: 5px solid #E2E8F0;
+      transition: border-color 0.3s;
+    }
+    #task-name {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--sub);
+    }
+    #elapsed {
+      font-size: 56px;
+      font-weight: 200;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -2px;
+      color: var(--text);
+      margin-bottom: 20px;
+      line-height: 1;
+    }
+    .btn-row { display: flex; gap: 10px; justify-content: center; }
+    .btn {
+      padding: 10px 28px;
+      border-radius: 20px;
+      border: none;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-finish { background: #34C759; color: white; }
+
+    /* Section */
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--sub);
+      letter-spacing: 0.3px;
+      margin: 16px 4px 8px;
+    }
+
+    /* Task grid */
+    .task-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .task-btn {
+      padding: 11px 10px;
+      border-radius: 10px;
+      border: none;
+      background: var(--card);
+      font-size: 13px;
+      font-family: inherit;
+      text-align: left;
+      cursor: pointer;
+      border-left: 3px solid;
+      line-height: 1.3;
+    }
+    .task-btn.current { outline: 2px solid; outline-offset: -1px; }
+
+    /* Checkin */
+    .checkin-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer; user-select: none;
+    }
+    .checkin-item:last-child { border-bottom: none; }
+    .check-circle {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid #C7C7CC;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 13px;
+      transition: all 0.2s;
+    }
+    .check-circle.done { background: #34C759; border-color: #34C759; color: white; }
+
+    /* Timeline */
+    .entry-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .entry-row:last-child { border-bottom: none; }
+    .entry-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .entry-info { flex: 1; }
+    .entry-name { font-size: 15px; font-weight: 500; }
+    .entry-time { font-size: 12px; color: var(--sub); margin-top: 1px; }
+    .entry-dur { font-size: 13px; color: var(--sub); font-variant-numeric: tabular-nums; }
+
+    /* Planner */
+    .block-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .block-row:last-child { border-bottom: none; }
+    .block-bar { width: 4px; height: 44px; border-radius: 2px; flex-shrink: 0; }
+    .block-info { flex: 1; }
+    .block-text { font-size: 15px; font-weight: 500; }
+    .block-time { font-size: 12px; color: var(--sub); margin-top: 2px; }
+    .block-done-btn {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 2px solid #C7C7CC;
+      background: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 14px;
+      transition: all 0.2s;
+    }
+    .block-done-btn.done { background: #34C759; border-color: #34C759; color: white; }
+
+    /* Page headers */
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .page-header h1 { font-size: 22px; font-weight: 700; }
+    .page-header span { font-size: 14px; color: var(--sub); }
+
+    /* Empty */
+    .empty { text-align: center; color: var(--sub); padding: 36px 0; font-size: 15px; }
+
+    /* Loading */
+    .loading { text-align: center; color: var(--sub); padding: 20px 0; font-size: 14px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- Timer -->
+  <div class="page active" id="page-timer">
+    <div class="card" id="current-card">
+      <div id="task-name">未开始</div>
+      <div id="elapsed">—</div>
+      <div class="btn-row" id="action-btns"></div>
+    </div>
+    <div class="section-title">工作</div>
+    <div class="task-grid" id="work-tasks"></div>
+    <div class="section-title">生活</div>
+    <div class="task-grid" id="life-tasks"></div>
+    <div class="section-title">今日打卡</div>
+    <div class="card" id="checkin-list"><div class="loading">加载中…</div></div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="page" id="page-timeline">
+    <div class="page-header">
+      <h1>今日记录</h1>
+      <span id="timeline-total"></span>
+    </div>
+    <div class="card" id="entries-list"><div class="loading">加载中…</div></div>
+  </div>
+
+  <!-- Planner -->
+  <div class="page" id="page-planner">
+    <div class="page-header">
+      <h1>今日计划</h1>
+      <span id="planner-date"></span>
+    </div>
+    <div class="card" id="planner-blocks"><div class="loading">加载中…</div></div>
+  </div>
+</div>
+
+<nav id="tabbar">
+  <button class="tab active" data-page="timer">
+    <span class="tab-icon">⏱</span>
+    <span>计时</span>
+  </button>
+  <button class="tab" data-page="timeline">
+    <span class="tab-icon">📊</span>
+    <span>今日</span>
+  </button>
+  <button class="tab" data-page="planner">
+    <span class="tab-icon">📅</span>
+    <span>计划</span>
+  </button>
+</nav>
+
+<script>
+const COLORS = {
+  '📈 交易学习':    '#E07068',
+  '🔮 塔罗分析':    '#9880CC',
+  '✍️ 写文章/卡片': '#E8956A',
+  '💻 折腾/开发':   '#5B8FD4',
+  '📷 摄影/画廊':   '#81D8D0',
+  '🗂️ 系统/杂事':  '#64748B',
+  '😴 睡眠':        '#6C5CE7',
+  '📱 刷手机':      '#7AB0D4',
+  '☕ 放松/休息':   '#8B5A38',
+  '🏃 运动':        '#72B87A',
+  '🍽️ 吃饭/家务':  '#DDB86A',
+  '🧘 冥想':        '#68B868',
+  '📔 日记':        '#E8A0BF',
+}
+
+function color(task) { return COLORS[task] || '#94A3B8' }
+
+function fmt(secs) {
+  secs = Math.floor(secs)
+  const m = Math.floor(secs / 60), h = Math.floor(m / 60)
+  if (h > 0) return `${h}:${String(m % 60).padStart(2,'0')}`
+  return `${m}m ${String(secs % 60).padStart(2,'0')}s`
+}
+
+function fmtMins(mins) {
+  const h = Math.floor(mins / 60), m = mins % 60
+  return h > 0 ? `${h}h${m > 0 ? m + 'm' : ''}` : `${m}m`
+}
+
+function minToTime(min) {
+  return `${String(Math.floor(min/60)).padStart(2,'0')}:${String(min%60).padStart(2,'0')}`
+}
+
+function today() {
+  return new Date().toLocaleDateString('sv-SE')
+}
+
+// ── State ─────────────────────────────────────────────────────────
+let state = null
+let timerInterval = null
+
+// ── Tabs ──────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const page = btn.dataset.page
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'))
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+    btn.classList.add('active')
+    document.getElementById('page-' + page).classList.add('active')
+    if (page === 'timeline') loadTimeline()
+    if (page === 'planner') loadPlanner()
+  })
+})
+
+// ── Timer ─────────────────────────────────────────────────────────
+function startElapsedTimer(taskStart) {
+  clearInterval(timerInterval)
+  const el = document.getElementById('elapsed')
+  timerInterval = setInterval(() => {
+    const secs = (Date.now() - new Date(taskStart).getTime()) / 1000
+    el.textContent = fmt(secs)
+  }, 1000)
+}
+
+function stopElapsedTimer() {
+  clearInterval(timerInterval)
+  document.getElementById('elapsed').textContent = '—'
+}
+
+async function sendCommand(action, task, item) {
+  const body = { action, timestamp: new Date().toISOString() }
+  if (task) body.task = task
+  if (item) body.item = item
+  try {
+    await fetch('/command', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+  } catch (e) {}
+  await loadState()
+}
+
+async function loadState() {
+  try {
+    const res = await fetch('/state')
+    state = await res.json()
+    renderTimer()
+  } catch (e) {}
+}
+
+function renderTimer() {
+  if (!state) return
+  const task = state.current_task
+  const c = task ? color(task) : '#E2E8F0'
+  const card = document.getElementById('current-card')
+
+  card.style.borderLeftColor = c
+  const nameEl = document.getElementById('task-name')
+  nameEl.textContent = task || '未开始'
+  nameEl.style.color = task ? c : 'var(--sub)'
+
+  if (task && state.task_start) {
+    const secs = (Date.now() - new Date(state.task_start).getTime()) / 1000
+    document.getElementById('elapsed').textContent = fmt(secs)
+    startElapsedTimer(state.task_start)
+  } else {
+    stopElapsedTimer()
+  }
+
+  // Action buttons
+  const btnsEl = document.getElementById('action-btns')
+  if (task) {
+    const btn = document.createElement('button')
+    btn.className = 'btn btn-finish'
+    btn.textContent = '结束'
+    btn.addEventListener('click', () => sendCommand('finish'))
+    btnsEl.innerHTML = ''
+    btnsEl.appendChild(btn)
+  } else {
+    btnsEl.innerHTML = ''
+  }
+
+  // Work tasks
+  renderTaskGrid('work-tasks', state.work_tasks || [], task)
+  // Life tasks
+  renderTaskGrid('life-tasks', state.life_tasks || [], task)
+
+  // Checkin
+  renderCheckin(state.checkin_items || [], state.checkin_done || [])
+}
+
+function renderTaskGrid(elId, tasks, currentTask) {
+  const el = document.getElementById(elId)
+  el.innerHTML = ''
+  tasks.forEach(t => {
+    const btn = document.createElement('button')
+    btn.className = 'task-btn' + (t === currentTask ? ' current' : '')
+    btn.textContent = t
+    btn.style.borderLeftColor = color(t)
+    btn.style.color = color(t)
+    if (t === currentTask) btn.style.outlineColor = color(t)
+    btn.addEventListener('click', () => sendCommand('start', t))
+    el.appendChild(btn)
+  })
+}
+
+function renderCheckin(items, done) {
+  const el = document.getElementById('checkin-list')
+  if (items.length === 0) {
+    el.innerHTML = '<div class="empty">无打卡项目</div>'
+    return
+  }
+  el.innerHTML = ''
+  items.forEach(item => {
+    const isDone = done.includes(item)
+    const row = document.createElement('div')
+    row.className = 'checkin-item'
+    row.innerHTML = `
+      <div class="check-circle ${isDone ? 'done' : ''}">${isDone ? '✓' : ''}</div>
+      <span style="color:${isDone ? 'var(--sub)' : 'var(--text)'};text-decoration:${isDone ? 'line-through' : 'none'}">${item}</span>
+    `
+    row.addEventListener('click', () => sendCommand('checkin_toggle', null, item))
+    el.appendChild(row)
+  })
+}
+
+// ── Timeline ──────────────────────────────────────────────────────
+async function loadTimeline() {
+  const el = document.getElementById('entries-list')
+  el.innerHTML = '<div class="loading">加载中…</div>'
+  try {
+    const res = await fetch('/entries/today')
+    const data = await res.json()
+    const entries = data.entries || []
+    const totalMins = entries.reduce((s, e) => s + (e.duration || 0), 0)
+    document.getElementById('timeline-total').textContent = totalMins > 0 ? fmtMins(totalMins) : ''
+
+    if (entries.length === 0) {
+      el.innerHTML = '<div class="empty">今天还没有记录</div>'
+      return
+    }
+    el.innerHTML = ''
+    ;[...entries].reverse().forEach(e => {
+      const start = (e.start_time || '').substring(11, 16)
+      const end   = (e.end_time   || '').substring(11, 16)
+      const row = document.createElement('div')
+      row.className = 'entry-row'
+      row.innerHTML = `
+        <div class="entry-dot" style="background:${color(e.category)}"></div>
+        <div class="entry-info">
+          <div class="entry-name">${e.category}</div>
+          <div class="entry-time">${start} – ${end}</div>
+        </div>
+        <div class="entry-dur">${fmtMins(e.duration || 0)}</div>
+      `
+      el.appendChild(row)
+    })
+  } catch (e) {
+    el.innerHTML = '<div class="empty">加载失败</div>'
+  }
+}
+
+// ── Planner ───────────────────────────────────────────────────────
+async function loadPlanner() {
+  const el = document.getElementById('planner-blocks')
+  el.innerHTML = '<div class="loading">加载中…</div>'
+  const d = today()
+  document.getElementById('planner-date').textContent = d
+
+  try {
+    const res = await fetch(`/planner/${d}`)
+    const data = await res.json()
+    const blocks = (data.blocks || []).slice().sort((a, b) => a.start_min - b.start_min)
+
+    if (blocks.length === 0) {
+      el.innerHTML = '<div class="empty">今天没有计划</div>'
+      return
+    }
+    el.innerHTML = ''
+    blocks.forEach(b => {
+      const c = b.color || color(b.text)
+      const row = document.createElement('div')
+      row.className = 'block-row'
+      row.innerHTML = `
+        <div class="block-bar" style="background:${c}"></div>
+        <div class="block-info">
+          <div class="block-text" style="color:${b.done ? 'var(--sub)' : 'var(--text)'};text-decoration:${b.done ? 'line-through' : 'none'}">${b.text}</div>
+          <div class="block-time">${minToTime(b.start_min)} – ${minToTime(b.end_min)}</div>
+        </div>
+        <button class="block-done-btn ${b.done ? 'done' : ''}">${b.done ? '✓' : ''}</button>
+      `
+      row.querySelector('.block-done-btn').addEventListener('click', () => toggleBlock(b.id))
+      el.appendChild(row)
+    })
+  } catch (e) {
+    el.innerHTML = '<div class="empty">加载失败</div>'
+  }
+}
+
+async function toggleBlock(id) {
+  const d = today()
+  try {
+    await fetch(`/planner/${d}/block/${id}/toggle`, { method: 'POST' })
+  } catch (e) {}
+  loadPlanner()
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+loadState()
+setInterval(loadState, 8000)
+</script>
+</body>
+</html>
