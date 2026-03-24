@@ -10,124 +10,112 @@
   <title>Orbit</title>
   <style>
     :root {
-      --bg: #F2F2F7; --card: #FFFFFF; --text: #000;
-      --sub: #8E8E93; --border: rgba(60,60,67,0.12);
-      --blue: #007AFF; --green: #34C759; --red: #FF3B30;
+      --bg:#F2F2F7; --card:#FFFFFF; --text:#000;
+      --sub:#8E8E93; --border:rgba(60,60,67,0.12);
+      --blue:#007AFF; --green:#34C759; --red:#FF3B30;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg); color: var(--text);
-      height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
-    }
-    #app { flex: 1; overflow: hidden; position: relative; }
-    .page {
-      position: absolute; inset: 0; overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
-      display: none;
-    }
-    .page.active { display: block; }
-    #tabbar {
-      display: flex; background: rgba(255,255,255,0.92);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border);
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-    .tab {
-      flex: 1; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 1px; padding: 6px 0;
-      border: none; background: none; cursor: pointer;
-      color: var(--sub); font-size: 9px; font-family: inherit;
-    }
-    .tab.active { color: var(--blue); }
-    .tab-icon { font-size: 20px; line-height: 1.2; }
-    .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
-    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .page-header h1 { font-size: 22px; font-weight: 700; }
-    .page-header span { font-size: 13px; color: var(--sub); }
-    .btn { padding: 10px 24px; border-radius: 20px; border: none; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; }
-    .btn-green { background: var(--green); color: white; }
-    .btn-blue  { background: var(--blue);  color: white; }
-    .btn-sm    { padding: 6px 14px; font-size: 13px; border-radius: 14px; }
-    .section-title { font-size: 12px; font-weight: 600; color: var(--sub); letter-spacing: 0.3px; margin: 14px 4px 8px; text-transform: uppercase; }
+    * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+    body { font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:var(--bg); color:var(--text); height:100dvh; display:flex; flex-direction:column; overflow:hidden; }
+    #app { flex:1; overflow:hidden; position:relative; }
+    .page { position:absolute; inset:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px; padding-bottom:calc(16px + env(safe-area-inset-bottom)); display:none; }
+    .page.active { display:block; }
+    #tabbar { display:flex; background:rgba(255,255,255,0.92); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-top:1px solid var(--border); padding-bottom:env(safe-area-inset-bottom); }
+    .tab { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; padding:6px 0; border:none; background:none; cursor:pointer; color:var(--sub); font-size:9px; font-family:inherit; }
+    .tab.active { color:var(--blue); }
+    .tab-icon { font-size:20px; line-height:1.2; }
+    .card { background:var(--card); border-radius:12px; padding:16px; margin-bottom:12px; }
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .page-header h1 { font-size:22px; font-weight:700; }
+    .btn { padding:10px 24px; border-radius:20px; border:none; font-size:15px; font-weight:500; cursor:pointer; font-family:inherit; }
+    .btn-green { background:var(--green); color:white; }
+    .btn-blue  { background:var(--blue);  color:white; }
+    .btn-sm    { padding:6px 14px; font-size:13px; border-radius:14px; }
+    .section-title { font-size:12px; font-weight:600; color:var(--sub); letter-spacing:.3px; margin:14px 4px 8px; text-transform:uppercase; }
     /* Timer */
-    #current-card { text-align: center; padding: 24px 16px 18px; border-left: 5px solid #E2E8F0; transition: border-color 0.3s; }
-    #task-name { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: var(--sub); }
-    #elapsed { font-size: 54px; font-weight: 200; font-variant-numeric: tabular-nums; letter-spacing: -2px; margin-bottom: 18px; line-height: 1; }
-    .btn-row { display: flex; gap: 10px; justify-content: center; }
-    .task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
-    .task-btn { padding: 11px 10px; border-radius: 10px; border: none; background: var(--card); font-size: 13px; font-family: inherit; text-align: left; cursor: pointer; border-left: 3px solid; line-height: 1.3; }
-    .task-btn.current { outline: 2px solid; outline-offset: -1px; }
-    .checkin-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
-    .checkin-item:last-child { border-bottom: none; }
-    .check-circle { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #C7C7CC; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; transition: all 0.2s; }
-    .check-circle.done { background: var(--green); border-color: var(--green); color: white; }
-    /* Visual timeline (planner + today) */
-    .timeline-wrap { display: flex; position: relative; }
-    .time-labels { width: 44px; flex-shrink: 0; position: relative; }
-    .time-label { position: absolute; right: 8px; font-size: 10px; color: var(--sub); transform: translateY(-50%); }
-    .timeline-grid { flex: 1; position: relative; background: var(--card); border-radius: 10px; overflow: hidden; }
-    .hour-line    { position: absolute; left: 0; right: 0; border-top: 1px solid rgba(60,60,67,0.15); }
-    .half-line    { position: absolute; left: 0; right: 0; border-top: 1px solid rgba(60,60,67,0.07); }
-    .quarter-line { position: absolute; left: 0; right: 0; border-top: 1px solid rgba(60,60,67,0.04); }
-    .timeline-block {
-      position: absolute; left: 2px; right: 2px; border-radius: 6px;
-      padding: 4px 6px; font-size: 12px; font-weight: 500; cursor: pointer;
-      overflow: hidden; display: flex; flex-direction: column; justify-content: center;
-      color: white; user-select: none;
+    #current-card { text-align:center; padding:24px 16px 18px; border-left:5px solid #E2E8F0; transition:border-color .3s; }
+    #task-name { font-size:20px; font-weight:600; margin-bottom:8px; color:var(--sub); }
+    #elapsed { font-size:54px; font-weight:200; font-variant-numeric:tabular-nums; letter-spacing:-2px; margin-bottom:18px; line-height:1; }
+    .btn-row { display:flex; gap:10px; justify-content:center; }
+    .task-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:4px; }
+    .task-btn { padding:11px 10px; border-radius:10px; border:none; background:var(--card); font-size:13px; font-family:inherit; text-align:left; cursor:pointer; border-left:3px solid; line-height:1.3; }
+    .task-btn.current { outline:2px solid; outline-offset:-1px; }
+    .checkin-item { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+    .checkin-item:last-child { border-bottom:none; }
+    .check-circle { width:22px; height:22px; border-radius:50%; border:2px solid #C7C7CC; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px; transition:all .2s; }
+    .check-circle.done { background:var(--green); border-color:var(--green); color:white; }
+
+    /* ── Shared timeline grid ── */
+    .tl-wrap { display:flex; }
+    .tl-labels { width:44px; flex-shrink:0; position:relative; }
+    .tl-label { position:absolute; right:6px; font-size:10px; color:var(--sub); transform:translateY(-50%); white-space:nowrap; }
+    .tl-grid { flex:1; position:relative; background:var(--card); border-radius:10px; overflow:hidden; cursor:crosshair; }
+    /* grid lines */
+    .ln-hour    { position:absolute; left:0; right:0; border-top:1px solid rgba(60,60,67,0.18); pointer-events:none; }
+    .ln-half    { position:absolute; left:0; right:0; border-top:1px solid rgba(60,60,67,0.08); pointer-events:none; }
+    .ln-quarter { position:absolute; left:0; right:0; border-top:1px dashed rgba(60,60,67,0.04); pointer-events:none; }
+    .ln-now     { position:absolute; left:0; right:0; border-top:2px solid var(--red); z-index:10; pointer-events:none; }
+    .ln-now-dot { position:absolute; left:-4px; top:-4px; width:8px; height:8px; background:var(--red); border-radius:50%; }
+    /* blocks */
+    .tl-block {
+      position:absolute; left:2px; right:2px; border-radius:6px;
+      overflow:hidden; color:white; user-select:none;
+      display:flex; flex-direction:column; justify-content:flex-start; padding:3px 6px;
     }
-    .timeline-block .b-text { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .timeline-block .b-time { font-size: 10px; opacity: 0.85; }
-    .timeline-block.done { opacity: 0.4; text-decoration: line-through; }
-    .now-line { position: absolute; left: 0; right: 0; border-top: 2px solid var(--red); z-index: 5; }
-    .now-dot { position: absolute; left: -4px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; top: -4px; }
+    .tl-block .b-name { font-size:11px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.3; }
+    .tl-block .b-time { font-size:10px; opacity:.8; white-space:nowrap; }
+    .tl-block .b-rsz  { position:absolute; bottom:0; left:0; right:0; height:10px; cursor:ns-resize; background:rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; }
+    .tl-block .b-rsz::after { content:''; width:20px; height:2px; background:rgba(255,255,255,0.7); border-radius:1px; }
+    .tl-block.done { opacity:.4; }
+
     /* Stats */
-    .view-toggle { display: flex; gap: 6px; }
-    .toggle-btn { padding: 5px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); font-size: 13px; cursor: pointer; font-family: inherit; }
-    .toggle-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
-    .range-row { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
-    .range-btn { padding: 5px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); font-size: 13px; cursor: pointer; font-family: inherit; }
-    .range-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
-    .stat-bar-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); }
-    .stat-bar-row:last-child { border-bottom: none; }
-    .stat-label { width: 110px; font-size: 13px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .stat-bar-wrap { flex: 1; height: 10px; background: var(--bg); border-radius: 5px; overflow: hidden; }
-    .stat-bar { height: 100%; border-radius: 5px; }
-    .stat-val { width: 38px; font-size: 12px; color: var(--sub); text-align: right; font-variant-numeric: tabular-nums; }
-    /* Backlog */
-    .backlog-wrap { overflow: hidden; position: relative; border-bottom: 1px solid var(--border); background: var(--card); border-radius: 0; }
-    .backlog-wrap:first-child { border-radius: 12px 12px 0 0; }
-    .backlog-wrap:last-child  { border-radius: 0 0 12px 12px; border-bottom: none; }
-    .backlog-wrap:only-child  { border-radius: 12px; }
-    .backlog-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: var(--card); transition: transform 0.2s ease; position: relative; z-index: 1; will-change: transform; }
-    .backlog-actions { position: absolute; right: 0; top: 0; bottom: 0; display: flex; }
-    .backlog-action-btn { border: none; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; padding: 0 16px; color: white; }
-    .backlog-action-btn.schedule { background: var(--blue); }
-    .backlog-action-btn.del      { background: var(--red); }
-    .backlog-dot  { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
-    .backlog-meta { font-size: 11px; color: var(--sub); margin-top: 2px; }
+    .view-toggle { display:flex; gap:6px; }
+    .toggle-btn { padding:5px 12px; border-radius:14px; border:1px solid var(--border); background:var(--card); font-size:13px; cursor:pointer; font-family:inherit; }
+    .toggle-btn.active { background:var(--blue); color:white; border-color:var(--blue); }
+    .range-row { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+    .range-btn { padding:5px 12px; border-radius:14px; border:1px solid var(--border); background:var(--card); font-size:13px; cursor:pointer; font-family:inherit; }
+    .range-btn.active { background:var(--blue); color:white; border-color:var(--blue); }
+    .stat-bar-row { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--border); }
+    .stat-bar-row:last-child { border-bottom:none; }
+    .stat-label { width:110px; font-size:13px; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .stat-bar-wrap { flex:1; height:10px; background:var(--bg); border-radius:5px; overflow:hidden; }
+    .stat-bar { height:100%; border-radius:5px; }
+    .stat-val { width:38px; font-size:12px; color:var(--sub); text-align:right; font-variant-numeric:tabular-nums; }
+
+    /* Backlog swipe */
+    .backlog-wrap { overflow:hidden; position:relative; border-bottom:1px solid var(--border); background:var(--card); }
+    .backlog-wrap:first-child { border-radius:12px 12px 0 0; }
+    .backlog-wrap:last-child  { border-radius:0 0 12px 12px; border-bottom:none; }
+    .backlog-wrap:only-child  { border-radius:12px; }
+    .backlog-item { display:flex; align-items:flex-start; gap:10px; padding:12px 14px; background:var(--card); transition:transform .2s ease; position:relative; z-index:1; will-change:transform; }
+    .backlog-actions { position:absolute; right:0; top:0; bottom:0; display:flex; }
+    .backlog-action-btn { border:none; cursor:pointer; font-size:13px; font-weight:600; font-family:inherit; padding:0 16px; color:white; }
+    .backlog-action-btn.schedule { background:var(--blue); }
+    .backlog-action-btn.del      { background:var(--red); }
+    .backlog-dot  { width:8px; height:8px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+    .backlog-meta { font-size:11px; color:var(--sub); margin-top:2px; }
+
     /* Modal */
-    #modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: flex-end; justify-content: center; }
-    #modal-overlay.open { display: flex; }
-    #modal { background: var(--card); border-radius: 18px 18px 0 0; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); width: 100%; max-height: 88dvh; overflow-y: auto; }
-    #modal h2 { font-size: 17px; font-weight: 600; margin-bottom: 14px; }
-    .modal-task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-    .modal-task-btn { padding: 10px 8px; border-radius: 10px; border: 2px solid transparent; background: var(--bg); font-size: 13px; font-family: inherit; text-align: left; cursor: pointer; border-left: 3px solid; }
-    .modal-task-btn.selected { border: 2px solid var(--blue); background: rgba(0,122,255,0.08); }
-    .time-row { display: flex; gap: 10px; margin-bottom: 16px; }
-    .time-input-wrap { flex: 1; }
-    .time-input-wrap label { font-size: 12px; color: var(--sub); display: block; margin-bottom: 4px; }
-    .time-input-wrap input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 16px; font-family: inherit; background: var(--bg); }
-    .modal-btns { display: flex; gap: 10px; }
-    .modal-btns .btn { flex: 1; }
-    .action-btn { padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-family: inherit; cursor: pointer; text-align: center; margin-bottom: 8px; display: block; width: 100%; }
-    .empty   { text-align: center; color: var(--sub); padding: 36px 0; font-size: 15px; }
-    .loading { text-align: center; color: var(--sub); padding: 20px 0;  font-size: 14px; }
+    #modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; align-items:flex-end; justify-content:center; }
+    #modal-overlay.open { display:flex; }
+    #modal { background:var(--card); border-radius:18px 18px 0 0; padding:20px 16px calc(20px + env(safe-area-inset-bottom)); width:100%; max-height:88dvh; overflow-y:auto; }
+    #modal h2 { font-size:17px; font-weight:600; margin-bottom:14px; }
+    .modal-task-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+    .modal-task-btn { padding:10px 8px; border-radius:10px; border:2px solid transparent; background:var(--bg); font-size:13px; font-family:inherit; text-align:left; cursor:pointer; border-left:3px solid; }
+    .modal-task-btn.selected { border:2px solid var(--blue); background:rgba(0,122,255,.08); }
+    .time-row { display:flex; gap:10px; margin-bottom:16px; }
+    .time-iw { flex:1; }
+    .time-iw label { font-size:12px; color:var(--sub); display:block; margin-bottom:4px; }
+    .time-iw input { width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); font-size:16px; font-family:inherit; background:var(--bg); }
+    .modal-btns { display:flex; gap:10px; }
+    .modal-btns .btn { flex:1; }
+    .action-btn { padding:14px; border-radius:12px; border:none; font-size:16px; font-family:inherit; cursor:pointer; text-align:center; margin-bottom:8px; display:block; width:100%; }
+    .empty   { text-align:center; color:var(--sub); padding:36px 0; font-size:15px; }
+    .loading { text-align:center; color:var(--sub); padding:20px 0; font-size:14px; }
   </style>
 </head>
 <body>
 <div id="app">
+
   <!-- TIMER -->
   <div class="page active" id="page-timer">
     <div class="card" id="current-card">
@@ -143,7 +131,7 @@
     <div class="card" id="checkin-list"><div class="loading">加载中…</div></div>
   </div>
 
-  <!-- PLANNER -->
+  <!-- PLANNER (drag + resize) -->
   <div class="page" id="page-planner">
     <div class="page-header">
       <h1>计划</h1>
@@ -152,7 +140,7 @@
     <div id="planner-scroll"></div>
   </div>
 
-  <!-- TODAY (actual entries) -->
+  <!-- TODAY (15min grid, like Mac) -->
   <div class="page" id="page-timeline">
     <div class="page-header">
       <h1>今日记录</h1>
@@ -184,45 +172,37 @@
     <div class="page-header"><h1>待安排</h1></div>
     <div id="backlog-list"><div class="loading">加载中…</div></div>
   </div>
+
 </div>
-
 <nav id="tabbar">
-  <button class="tab active" data-page="timer">   <span class="tab-icon">⏱</span><span>计时</span></button>
-  <button class="tab" data-page="planner">        <span class="tab-icon">📅</span><span>计划</span></button>
-  <button class="tab" data-page="timeline">       <span class="tab-icon">📊</span><span>今日</span></button>
-  <button class="tab" data-page="stats">          <span class="tab-icon">📈</span><span>统计</span></button>
-  <button class="tab" data-page="backlog">        <span class="tab-icon">📋</span><span>待安排</span></button>
+  <button class="tab active" data-page="timer">  <span class="tab-icon">⏱</span><span>计时</span></button>
+  <button class="tab" data-page="planner">       <span class="tab-icon">📅</span><span>计划</span></button>
+  <button class="tab" data-page="timeline">      <span class="tab-icon">📊</span><span>今日</span></button>
+  <button class="tab" data-page="stats">         <span class="tab-icon">📈</span><span>统计</span></button>
+  <button class="tab" data-page="backlog">       <span class="tab-icon">📋</span><span>待安排</span></button>
 </nav>
-
 <div id="modal-overlay"><div id="modal"></div></div>
 
 <script>
-const COLORS = {
-  '📈 交易学习':'#E07068','🔮 塔罗分析':'#9880CC','✍️ 写文章/卡片':'#E8956A',
-  '💻 折腾/开发':'#5B8FD4','📷 摄影/画廊':'#81D8D0','🗂️ 系统/杂事':'#64748B',
-  '😴 睡眠':'#6C5CE7','📱 刷手机':'#7AB0D4','☕ 放松/休息':'#8B5A38',
-  '🏃 运动':'#72B87A','🍽️ 吃饭/家务':'#DDB86A','🧘 冥想':'#68B868','📔 日记':'#E8A0BF',
-}
-const PX = 1.2, START = 5*60, END = 24*60
-
-function c(t) { return COLORS[t] || '#94A3B8' }
-function fmt(s) { s=Math.floor(s); const m=Math.floor(s/60),h=Math.floor(m/60); return h>0?`${h}:${String(m%60).padStart(2,'0')}`:`${m}m ${String(s%60).padStart(2,'0')}s` }
-function fmtM(m) { const h=Math.floor(m/60),r=m%60; return h>0?`${h}h${r>0?r+'m':''}`:`${r}m` }
-function m2t(m) { return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}` }
-function t2m(s) { const[h,m]=s.split(':').map(Number); return h*60+(m||0) }
-function tod()  { return new Date().toLocaleDateString('sv-SE') }
-function nowMin() { const n=new Date(); return n.getHours()*60+n.getMinutes() }
-
-let appState=null, timerInt=null, statsDays=7, statsView='bar', selTask=null
+const COLORS={'📈 交易学习':'#E07068','🔮 塔罗分析':'#9880CC','✍️ 写文章/卡片':'#E8956A','💻 折腾/开发':'#5B8FD4','📷 摄影/画廊':'#81D8D0','🗂️ 系统/杂事':'#64748B','😴 睡眠':'#6C5CE7','📱 刷手机':'#7AB0D4','☕ 放松/休息':'#8B5A38','🏃 运动':'#72B87A','🍽️ 吃饭/家务':'#DDB86A','🧘 冥想':'#68B868','📔 日记':'#E8A0BF'}
+const PX=1.5, START=5*60, END=24*60
+function c(t){return COLORS[t]||'#94A3B8'}
+function fmt(s){s=Math.floor(s);const m=Math.floor(s/60),h=Math.floor(m/60);return h>0?`${h}:${String(m%60).padStart(2,'0')}`:`${m}m ${String(s%60).padStart(2,'0')}s`}
+function fmtM(m){const h=Math.floor(m/60),r=m%60;return h>0?`${h}h${r>0?r+'m':''}`:`${r}m`}
+function m2t(m){return`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}
+function t2m(s){const[h,m]=s.split(':').map(Number);return h*60+(m||0)}
+function tod(){return new Date().toLocaleDateString('sv-SE')}
+function nowMin(){const n=new Date();return n.getHours()*60+n.getMinutes()}
+function snap15(m){return Math.round(m/15)*15}
+let appState=null,timerInt=null,statsDays=7,statsView='bar',selTask=null
 
 // ── Tabs ──────────────────────────────────────────────────────────
-document.querySelectorAll('.tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const p = btn.dataset.page
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const p=btn.dataset.page
     document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'))
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))
-    btn.classList.add('active')
-    document.getElementById('page-'+p).classList.add('active')
+    btn.classList.add('active'); document.getElementById('page-'+p).classList.add('active')
     if(p==='planner')  loadPlanner()
     if(p==='timeline') loadToday()
     if(p==='stats')    loadStats()
@@ -231,299 +211,346 @@ document.querySelectorAll('.tab').forEach(btn => {
 })
 
 // ── Modal ─────────────────────────────────────────────────────────
-function openModal(html) { document.getElementById('modal').innerHTML=html; document.getElementById('modal-overlay').classList.add('open') }
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); selTask=null }
-document.getElementById('modal-overlay').addEventListener('click', e=>{ if(e.target===document.getElementById('modal-overlay')) closeModal() })
+function openModal(html){document.getElementById('modal').innerHTML=html;document.getElementById('modal-overlay').classList.add('open')}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');selTask=null}
+document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeModal()})
 
 // ── Timer ─────────────────────────────────────────────────────────
-async function sendCmd(action,task,item) {
+async function sendCmd(action,task,item){
   const b={action,timestamp:new Date().toISOString()}
-  if(task) b.task=task; if(item) b.item=item
-  try { await fetch('/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}) } catch(e){}
+  if(task)b.task=task;if(item)b.item=item
+  try{await fetch('/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)})}catch(e){}
   await loadState()
 }
-async function loadState() {
-  try { const r=await fetch('/state'); appState=await r.json(); renderTimer() } catch(e){}
+async function loadState(){
+  try{const r=await fetch('/state');appState=await r.json();renderTimer()}catch(e){}
 }
-function renderTimer() {
-  if(!appState) return
-  const task=appState.current_task, col=task?c(task):'#E2E8F0'
+function renderTimer(){
+  if(!appState)return
+  const task=appState.current_task,col=task?c(task):'#E2E8F0'
   document.getElementById('current-card').style.borderLeftColor=col
-  const ne=document.getElementById('task-name'); ne.textContent=task||'未开始'; ne.style.color=task?col:'var(--sub)'
-  if(task&&appState.task_start) { document.getElementById('elapsed').textContent=fmt((Date.now()-new Date(appState.task_start).getTime())/1000); startTimer(appState.task_start) }
-  else { clearInterval(timerInt); document.getElementById('elapsed').textContent='—' }
-  const be=document.getElementById('action-btns'); be.innerHTML=''
-  if(task) { const b=document.createElement('button'); b.className='btn btn-green'; b.textContent='结束'; b.onclick=()=>sendCmd('finish'); be.appendChild(b) }
+  const ne=document.getElementById('task-name');ne.textContent=task||'未开始';ne.style.color=task?col:'var(--sub)'
+  if(task&&appState.task_start){document.getElementById('elapsed').textContent=fmt((Date.now()-new Date(appState.task_start).getTime())/1000);clearInterval(timerInt);timerInt=setInterval(()=>{document.getElementById('elapsed').textContent=fmt((Date.now()-new Date(appState.task_start).getTime())/1000)},1000)}
+  else{clearInterval(timerInt);document.getElementById('elapsed').textContent='—'}
+  const be=document.getElementById('action-btns');be.innerHTML=''
+  if(task){const b=document.createElement('button');b.className='btn btn-green';b.textContent='结束';b.onclick=()=>sendCmd('finish');be.appendChild(b)}
   renderGrid('work-tasks',appState.work_tasks||[],task)
   renderGrid('life-tasks',appState.life_tasks||[],task)
   renderCheckin(appState.checkin_items||[],appState.checkin_done||[])
 }
-function startTimer(ts) { clearInterval(timerInt); timerInt=setInterval(()=>{ document.getElementById('elapsed').textContent=fmt((Date.now()-new Date(ts).getTime())/1000) },1000) }
-function renderGrid(id,tasks,cur) {
-  const el=document.getElementById(id); el.innerHTML=''
-  tasks.forEach(t=>{ const b=document.createElement('button'); b.className='task-btn'+(t===cur?' current':''); b.textContent=t; b.style.borderLeftColor=c(t); b.style.color=c(t); if(t===cur)b.style.outlineColor=c(t); b.onclick=()=>sendCmd('start',t); el.appendChild(b) })
+function renderGrid(id,tasks,cur){
+  const el=document.getElementById(id);el.innerHTML=''
+  tasks.forEach(t=>{const b=document.createElement('button');b.className='task-btn'+(t===cur?' current':'');b.textContent=t;b.style.borderLeftColor=c(t);b.style.color=c(t);if(t===cur)b.style.outlineColor=c(t);b.onclick=()=>sendCmd('start',t);el.appendChild(b)})
 }
-function renderCheckin(items,done) {
+function renderCheckin(items,done){
   const el=document.getElementById('checkin-list')
   if(!items.length){el.innerHTML='<div class="empty">无打卡项目</div>';return}
   el.innerHTML=''
-  items.forEach(item=>{ const d=done.includes(item); const r=document.createElement('div'); r.className='checkin-item'; r.innerHTML=`<div class="check-circle ${d?'done':''}">${d?'✓':''}</div><span style="color:${d?'var(--sub)':'var(--text)'};text-decoration:${d?'line-through':'none'}">${item}</span>`; r.onclick=()=>sendCmd('checkin_toggle',null,item); el.appendChild(r) })
+  items.forEach(item=>{const d=done.includes(item);const r=document.createElement('div');r.className='checkin-item';r.innerHTML=`<div class="check-circle ${d?'done':''}">${d?'✓':''}</div><span style="color:${d?'var(--sub)':'var(--text)'};text-decoration:${d?'line-through':'none'}">${item}</span>`;r.onclick=()=>sendCmd('checkin_toggle',null,item);el.appendChild(r)})
 }
 
-// ── Shared visual grid ────────────────────────────────────────────
-function buildGrid(blocks, containerId, onBlockTap) {
-  const el=document.getElementById(containerId), totalH=(END-START)*PX
+// ── Build timeline grid (shared, no drag) ────────────────────────
+function buildTimelineGrid(containerId, blocks, onTapBlock, onTapEmpty, showQuarter=false) {
+  const el=document.getElementById(containerId)
+  const totalH=(END-START)*PX
   let labels='', lines=''
-  for(let h=START/60;h<=END/60;h++) {
+  for(let h=START/60;h<=END/60;h++){
     const y=(h*60-START)*PX
-    labels+=`<div class="time-label" style="top:${y}px">${String(h).padStart(2,'0')}:00</div>`
-    lines+=`<div class="hour-line" style="top:${y}px"></div>`
-    if(h<END/60) {
-      lines+=`<div class="quarter-line" style="top:${y+15*PX}px"></div>`
-      lines+=`<div class="half-line"    style="top:${y+30*PX}px"></div>`
-      lines+=`<div class="quarter-line" style="top:${y+45*PX}px"></div>`
+    labels+=`<div class="tl-label" style="top:${y}px">${String(h).padStart(2,'0')}:00</div>`
+    lines+=`<div class="ln-hour" style="top:${y}px"></div>`
+    if(h<END/60){
+      if(showQuarter) lines+=`<div class="ln-quarter" style="top:${y+15*PX}px"></div>`
+      lines+=`<div class="ln-half" style="top:${y+30*PX}px"></div>`
+      if(showQuarter) lines+=`<div class="ln-quarter" style="top:${y+45*PX}px"></div>`
     }
   }
   const nm=nowMin(), ny=(Math.min(nm,END)-START)*PX
-  const nowHtml=nm>=START&&nm<=END?`<div class="now-line" style="top:${ny}px"><div class="now-dot"></div></div>`:''
+  const nowLine=nm>=START&&nm<=END?`<div class="ln-now" style="top:${ny}px"><div class="ln-now-dot"></div></div>`:''
 
-  let bHtml=blocks.length?'':'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:13px;pointer-events:none">点右上角 + 添加</div>'
+  const grid=document.createElement('div'); grid.className='tl-grid'; grid.style.height=totalH+'px'
+  grid.innerHTML=lines+nowLine
+
   blocks.forEach(b=>{
-    const top=(b.start_min-START)*PX, h=Math.max((b.end_min-b.start_min)*PX,20)
-    const col=b.color||c(b.text||b.category)
-    const done=b.done?' done':''
-    bHtml+=`<div class="timeline-block${done}" data-id="${b.id||''}" style="top:${top}px;height:${h}px;background:${col}">
-      <div class="b-text">${b.text||b.category}</div>
-      ${h>28?`<div class="b-time">${m2t(b.start_min)}–${m2t(b.end_min)}</div>`:''}
-    </div>`
+    const top=(b.start_min-START)*PX, h=Math.max((b.end_min-b.start_min)*PX,18)
+    const col=b.color||c(b.text||b.category||'')
+    const div=document.createElement('div')
+    div.className='tl-block'+(b.done?' done':'')
+    div.dataset.id=String(b.id??b._id??'')
+    div.style.cssText=`top:${top}px;height:${h}px;background:${col}`
+    div.innerHTML=`${h>20?`<div class="b-name">${b.text||b.category}</div>`:''}${h>34?`<div class="b-time">${m2t(b.start_min)}–${m2t(b.end_min)}</div>`:''}`
+    div.addEventListener('click',e=>{e.stopPropagation();onTapBlock&&onTapBlock(b)})
+    grid.appendChild(div)
   })
 
-  el.innerHTML=`<div class="timeline-wrap"><div class="time-labels" style="height:${totalH}px">${labels}</div><div class="timeline-grid" style="height:${totalH}px" id="${containerId}-grid">${lines}${nowHtml}${bHtml}</div></div>`
-  el.querySelectorAll('.timeline-block').forEach(el=>{ el.addEventListener('click',e=>{ e.stopPropagation(); onBlockTap(el.dataset.id) }) })
+  if(onTapEmpty){
+    grid.addEventListener('click',e=>{
+      if(e.target===grid||e.target.classList.contains('ln-hour')||e.target.classList.contains('ln-half')||e.target.classList.contains('ln-quarter')){
+        const rect=grid.getBoundingClientRect()
+        const y=e.clientY-rect.top
+        const min=snap15(START+y/PX)
+        onTapEmpty(min)
+      }
+    })
+  }
+
+  const labelsEl=document.createElement('div'); labelsEl.className='tl-labels'; labelsEl.style.height=totalH+'px'; labelsEl.innerHTML=labels
+  el.innerHTML=''; const wrap=document.createElement('div'); wrap.className='tl-wrap'; wrap.appendChild(labelsEl); wrap.appendChild(grid); el.appendChild(wrap)
+  // scroll to now - 1h
   el.scrollTop=Math.max(0,(Math.min(nm,END)-START-60)*PX)
 }
 
-// ── Planner ───────────────────────────────────────────────────────
-async function loadPlanner() {
+// ── Planner (draggable + resizable) ──────────────────────────────
+async function loadPlanner(){
   const el=document.getElementById('planner-scroll'); el.innerHTML='<div class="loading">加载中…</div>'
-  try { const r=await fetch(`/planner/${tod()}`); const d=await r.json(); renderPlanner(d.blocks||[]) }
-  catch(e){ el.innerHTML='<div class="empty">加载失败</div>' }
+  try{const r=await fetch(`/planner/${tod()}`);const d=await r.json();renderPlanner(d.blocks||[])}
+  catch(e){el.innerHTML='<div class="empty">加载失败</div>'}
 }
-function renderPlanner(blocks) {
-  const sorted=[...blocks].sort((a,b)=>a.start_min-b.start_min)
-  buildGrid(sorted,'planner-scroll', id=>openBlockAction(id))
-}
-function openBlockAction(id) {
-  openModal(`<h2>操作</h2>
-    <button class="action-btn" style="background:var(--bg)" onclick="togglePlanDone('${id}')">✓ 标记完成 / 取消</button>
-    <button class="action-btn" style="background:#FFF0F0;color:var(--red)" onclick="deletePlanBlock('${id}')">删除</button>
-    <button class="action-btn" style="background:var(--bg);color:var(--sub)" onclick="closeModal()">取消</button>`)
-}
-async function togglePlanDone(id) { closeModal(); await fetch(`/planner/${tod()}/block/${id}/toggle`,{method:'POST'}); loadPlanner() }
-async function deletePlanBlock(id) { closeModal(); await fetch(`/planner/${tod()}/block/${id}`,{method:'DELETE'}); loadPlanner() }
 
-document.getElementById('planner-add-btn').addEventListener('click', ()=>showAddBlockModal('planner'))
+function renderPlanner(blocks){
+  const el=document.getElementById('planner-scroll')
+  const totalH=(END-START)*PX
+  let labels='', lines=''
+  for(let h=START/60;h<=END/60;h++){
+    const y=(h*60-START)*PX
+    labels+=`<div class="tl-label" style="top:${y}px">${String(h).padStart(2,'0')}:00</div>`
+    lines+=`<div class="ln-hour" style="top:${y}px"></div>`
+    if(h<END/60) lines+=`<div class="ln-half" style="top:${y+30*PX}px"></div>`
+  }
+  const nm=nowMin(),ny=(Math.min(nm,END)-START)*PX
+  const nowLine=nm>=START&&nm<=END?`<div class="ln-now" style="top:${ny}px"><div class="ln-now-dot"></div></div>`:''
+
+  const grid=document.createElement('div'); grid.className='tl-grid'; grid.style.height=totalH+'px'; grid.style.cursor='default'
+  grid.innerHTML=lines+nowLine
+
+  const sorted=[...blocks].sort((a,b)=>a.start_min-b.start_min)
+  sorted.forEach(b=>grid.appendChild(makePlannerBlock(b)))
+
+  // tap empty → add
+  grid.addEventListener('click',e=>{
+    if(e.target===grid||e.target.classList.contains('ln-hour')||e.target.classList.contains('ln-half')){
+      const rect=grid.getBoundingClientRect(), min=snap15(START+(e.clientY-rect.top)/PX)
+      showAddModal('planner', min)
+    }
+  })
+
+  const labelsEl=document.createElement('div'); labelsEl.className='tl-labels'; labelsEl.style.height=totalH+'px'; labelsEl.innerHTML=labels
+  el.innerHTML=''
+  const wrap=document.createElement('div'); wrap.className='tl-wrap'; wrap.appendChild(labelsEl); wrap.appendChild(grid); el.appendChild(wrap)
+  el.scrollTop=Math.max(0,(Math.min(nm,END)-START-60)*PX)
+}
+
+function makePlannerBlock(b){
+  const top=(b.start_min-START)*PX, h=Math.max((b.end_min-b.start_min)*PX,20)
+  const col=b.color||c(b.text)
+  const div=document.createElement('div')
+  div.className='tl-block'+(b.done?' done':'')
+  div.style.cssText=`top:${top}px;height:${h}px;background:${col};cursor:grab`
+  div.dataset.id=b.id; div.dataset.sm=b.start_min; div.dataset.em=b.end_min
+  div.innerHTML=`${h>20?`<div class="b-name">${b.text}</div>`:''}${h>34?`<div class="b-time">${m2t(b.start_min)}–${m2t(b.end_min)}</div>`:''}${h>28?'<div class="b-rsz" data-rsz="1"></div>':''}`
+
+  // ── drag to move ──────────────────────────────────────────────
+  let dragStartY=0, dragStartMin=0, isDragging=false, isResizing=false, resizeStartY=0, resizeStartEM=0
+  const grid=()=>div.parentElement
+  const scrollEl=()=>document.getElementById('planner-scroll')
+
+  div.addEventListener('touchstart',e=>{
+    if(e.target.dataset.rsz){
+      // resize
+      isResizing=true; isDragging=false
+      resizeStartY=e.touches[0].clientY; resizeStartEM=parseInt(div.dataset.em)
+      e.stopPropagation()
+    } else {
+      // drag
+      isDragging=true; isResizing=false
+      dragStartY=e.touches[0].clientY; dragStartMin=parseInt(div.dataset.sm)
+    }
+  },{passive:true})
+
+  div.addEventListener('touchmove',e=>{
+    e.preventDefault()
+    const touch=e.touches[0]
+    if(isResizing){
+      const dy=touch.clientY-resizeStartY
+      const newEM=snap15(resizeStartEM+dy/PX)
+      const minEM=parseInt(div.dataset.sm)+15
+      const clampEM=Math.max(minEM,Math.min(END,newEM))
+      div.dataset.em=clampEM
+      const newH=Math.max((clampEM-parseInt(div.dataset.sm))*PX,20)
+      div.style.height=newH+'px'
+      div.querySelector('.b-name')&&(div.querySelector('.b-name').textContent=b.text)
+      div.querySelector('.b-time')&&(div.querySelector('.b-time').textContent=`${m2t(parseInt(div.dataset.sm))}–${m2t(clampEM)}`)
+    } else if(isDragging){
+      const dy=touch.clientY-dragStartY
+      const dur=parseInt(div.dataset.em)-parseInt(div.dataset.sm)
+      const newSM=snap15(dragStartMin+dy/PX)
+      const clampSM=Math.max(START,Math.min(END-dur,newSM))
+      div.dataset.sm=clampSM; div.dataset.em=clampSM+dur
+      div.style.top=(clampSM-START)*PX+'px'
+      div.querySelector('.b-time')&&(div.querySelector('.b-time').textContent=`${m2t(clampSM)}–${m2t(clampSM+dur)}`)
+    }
+  },{passive:false})
+
+  div.addEventListener('touchend',async e=>{
+    if(isResizing||isDragging){
+      const sm=parseInt(div.dataset.sm), em=parseInt(div.dataset.em)
+      isResizing=false; isDragging=false
+      if(sm!==b.start_min||em!==b.end_min){
+        b.start_min=sm; b.end_min=em
+        await fetch(`/planner/${tod()}/block/${b.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({start_min:sm,end_min:em})})
+      }
+    } else {
+      // tap → action sheet
+      openModal(`<h2>${b.text}</h2><p style="color:var(--sub);font-size:13px;margin-bottom:16px">${m2t(b.start_min)} – ${m2t(b.end_min)}</p>
+        <button class="action-btn" style="background:var(--bg)" onclick="togglePlanDone('${b.id}')">✓ 标记完成 / 取消</button>
+        <button class="action-btn" style="background:#FFF0F0;color:var(--red)" onclick="deletePlanBlock('${b.id}')">删除</button>
+        <button class="action-btn" style="background:var(--bg);color:var(--sub)" onclick="closeModal()">取消</button>`)
+    }
+  })
+  return div
+}
+
+async function togglePlanDone(id){closeModal();await fetch(`/planner/${tod()}/block/${id}/toggle`,{method:'POST'});loadPlanner()}
+async function deletePlanBlock(id){closeModal();await fetch(`/planner/${tod()}/block/${id}`,{method:'DELETE'});loadPlanner()}
+document.getElementById('planner-add-btn').addEventListener('click',()=>showAddModal('planner',snap15(nowMin())))
 
 // ── Today ─────────────────────────────────────────────────────────
-async function loadToday() {
+let todayEntries=[]
+async function loadToday(){
   const el=document.getElementById('today-scroll'); el.innerHTML='<div class="loading">加载中…</div>'
-  try {
+  try{
     const r=await fetch('/entries/today'); const d=await r.json()
-    const entries=d.entries||[]
-    const total=entries.reduce((s,e)=>s+(e.duration||0),0)
+    todayEntries=d.entries||[]
+    const total=todayEntries.reduce((s,e)=>s+(e.duration||0),0)
     document.getElementById('today-total').textContent=total>0?`合计 ${fmtM(total)}`:'今天还没有记录'
-    const blocks=entries.map(e=>({
-      id: e.id, text: e.category, color: c(e.category),
-      start_min: t2m((e.start_time||'').substring(11,16)),
-      end_min:   t2m((e.end_time||'').substring(11,16)),
-      start_time: e.start_time, end_time: e.end_time
+    const blocks=todayEntries.map(e=>({
+      id:e.id, text:e.category, color:c(e.category),
+      start_min:t2m((e.start_time||'').substring(11,16)),
+      end_min:  t2m((e.end_time||'').substring(11,16)),
     }))
-    buildGrid(blocks,'today-scroll', id=>openEntryAction(id, entries))
-  } catch(e){ document.getElementById('today-scroll').innerHTML='<div class="empty">加载失败</div>' }
+    buildTimelineGrid('today-scroll', blocks,
+      b=>openEntryAction(b),
+      min=>showAddModal('today', min),
+      true  // showQuarter = true for today
+    )
+  }catch(e){document.getElementById('today-scroll').innerHTML='<div class="empty">加载失败</div>'}
 }
-function openEntryAction(id, entries) {
-  const entry=entries.find(e=>String(e.id)===String(id))
-  if(!entry) return
+function openEntryAction(b){
+  const entry=todayEntries.find(e=>String(e.id)===String(b.id))
+  if(!entry)return
   openModal(`<h2>${entry.category}</h2>
-    <p style="color:var(--sub);font-size:13px;margin-bottom:16px">${(entry.start_time||'').substring(11,16)} – ${(entry.end_time||'').substring(11,16)}  ·  ${fmtM(entry.duration||0)}</p>
-    <button class="action-btn" style="background:var(--bg)" onclick="openOverwriteModal(${id})">✏️ 修改项目</button>
-    <button class="action-btn" style="background:#FFF0F0;color:var(--red)" onclick="deleteEntry(${id})">删除</button>
+    <p style="color:var(--sub);font-size:13px;margin-bottom:16px">${(entry.start_time||'').substring(11,16)} – ${(entry.end_time||'').substring(11,16)} · ${fmtM(entry.duration||0)}</p>
+    <button class="action-btn" style="background:var(--bg)" onclick="openOverwriteModal(${b.id})">✏️ 修改项目</button>
+    <button class="action-btn" style="background:#FFF0F0;color:var(--red)" onclick="deleteEntry(${b.id})">删除</button>
     <button class="action-btn" style="background:var(--bg);color:var(--sub)" onclick="closeModal()">取消</button>`)
 }
-function openOverwriteModal(id) {
+function openOverwriteModal(id){
   closeModal()
   const tasks=[...(appState?.work_tasks||[]),...(appState?.life_tasks||[])]
-  const taskBtns=tasks.map(t=>`<button class="modal-task-btn" data-task="${t}" style="border-left-color:${c(t)};color:${c(t)}" onclick="selModalTask(this,'${t.replace(/'/g,"\\'")}'">${t}</button>`).join('')
-  openModal(`<h2>修改项目</h2><div class="modal-task-grid">${taskBtns}</div>
+  const btns=tasks.map(t=>`<button class="modal-task-btn" data-task="${t}" style="border-left-color:${c(t)};color:${c(t)}" onclick="selModalTask(this,'${t.replace(/'/g,"\\'")}'">${t}</button>`).join('')
+  openModal(`<h2>修改项目</h2><div class="modal-task-grid">${btns}</div>
     <div class="modal-btns">
       <button class="btn" style="background:var(--bg);color:var(--sub)" onclick="closeModal()">取消</button>
       <button class="btn btn-blue" onclick="submitOverwrite(${id})">确认</button>
     </div>`)
 }
-async function submitOverwrite(id) {
+async function submitOverwrite(id){
   if(!selTask){alert('请选择任务');return}
   const task=selTask; closeModal()
-  // get existing entry times
-  const r=await fetch('/entries/today'); const d=await r.json()
-  const entry=(d.entries||[]).find(e=>String(e.id)===String(id))
-  if(!entry) return
+  const entry=todayEntries.find(e=>String(e.id)===String(id)); if(!entry)return
   await fetch(`/entries/${id}`,{method:'DELETE'})
-  await fetch('/entries',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({start_time:entry.start_time,end_time:entry.end_time,category:task,note:'修改',duration:entry.duration})})
+  await fetch('/entries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({start_time:entry.start_time,end_time:entry.end_time,category:task,note:'修改',duration:entry.duration})})
   loadToday()
 }
-async function deleteEntry(id) { closeModal(); await fetch(`/entries/${id}`,{method:'DELETE'}); loadToday() }
+async function deleteEntry(id){closeModal();await fetch(`/entries/${id}`,{method:'DELETE'});loadToday()}
+document.getElementById('today-add-btn').addEventListener('click',()=>showAddModal('today',snap15(nowMin())))
 
-document.getElementById('today-add-btn').addEventListener('click',()=>showAddBlockModal('today'))
-
-// ── Shared add block modal ────────────────────────────────────────
-function showAddBlockModal(target) {
+// ── Shared add modal ──────────────────────────────────────────────
+function showAddModal(target, startMin){
   const tasks=[...(appState?.work_tasks||[]),...(appState?.life_tasks||[])]
-  const snap=Math.round(nowMin()/15)*15
-  const taskBtns=tasks.map(t=>`<button class="modal-task-btn" data-task="${t}" style="border-left-color:${c(t)};color:${c(t)}" onclick="selModalTask(this,'${t.replace(/'/g,"\\'")}'">${t}</button>`).join('')
+  const btns=tasks.map(t=>`<button class="modal-task-btn${selTask===t?' selected':''}" data-task="${t}" style="border-left-color:${c(t)};color:${c(t)}" onclick="selModalTask(this,'${t.replace(/'/g,"\\'")}'">${t}</button>`).join('')
   openModal(`<h2>添加${target==='planner'?'计划块':'记录'}</h2>
-    <div class="modal-task-grid">${taskBtns}</div>
+    <div class="modal-task-grid">${btns}</div>
     <div class="time-row">
-      <div class="time-input-wrap"><label>开始</label><input type="time" id="m-start" value="${m2t(snap)}"></div>
-      <div class="time-input-wrap"><label>结束</label><input type="time" id="m-end"   value="${m2t(snap+60)}"></div>
+      <div class="time-iw"><label>开始</label><input type="time" id="m-start" value="${m2t(startMin)}"></div>
+      <div class="time-iw"><label>结束</label><input type="time" id="m-end"   value="${m2t(startMin+60)}"></div>
     </div>
     <div class="modal-btns">
       <button class="btn" style="background:var(--bg);color:var(--sub)" onclick="closeModal()">取消</button>
       <button class="btn btn-blue" onclick="submitAdd('${target}')">添加</button>
     </div>`)
 }
-function selModalTask(el, task) {
-  document.querySelectorAll('.modal-task-btn').forEach(b=>b.classList.remove('selected'))
-  el.classList.add('selected'); selTask=task
-}
-async function submitAdd(target) {
+function selModalTask(el,task){document.querySelectorAll('.modal-task-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');selTask=task}
+async function submitAdd(target){
   if(!selTask){alert('请选择任务');return}
   const sm=t2m(document.getElementById('m-start').value), em=t2m(document.getElementById('m-end').value)
   if(em<=sm){alert('结束时间必须晚于开始时间');return}
   const task=selTask; closeModal()
-  if(target==='planner') {
-    await fetch(`/planner/${tod()}/blocks`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:task,color:c(task),start_min:sm,end_min:em})})
+  if(target==='planner'){
+    await fetch(`/planner/${tod()}/blocks`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:task,color:c(task),start_min:sm,end_min:em})})
     loadPlanner()
   } else {
-    const d=tod()
-    const st=`${d} ${m2t(sm)}:00`, et=`${d} ${m2t(em)}:00`
-    await fetch('/entries',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({start_time:st,end_time:et,category:task,note:'补录'})})
+    const d=tod(), st=`${d} ${m2t(sm)}:00`, et=`${d} ${m2t(em)}:00`
+    await fetch('/entries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({start_time:st,end_time:et,category:task,note:'补录'})})
     loadToday()
   }
 }
 
 // ── Stats ─────────────────────────────────────────────────────────
-function setStatsView(v) {
-  statsView=v
-  document.getElementById('view-bar').classList.toggle('active',v==='bar')
-  document.getElementById('view-pie').classList.toggle('active',v==='pie')
-  loadStats()
-}
-document.querySelectorAll('.range-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{ document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); statsDays=parseInt(btn.dataset.days); loadStats() })
-})
-async function loadStats() {
+function setStatsView(v){statsView=v;document.getElementById('view-bar').classList.toggle('active',v==='bar');document.getElementById('view-pie').classList.toggle('active',v==='pie');loadStats()}
+document.querySelectorAll('.range-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');statsDays=parseInt(btn.dataset.days);loadStats()})})
+async function loadStats(){
   const el=document.getElementById('stats-content'); el.innerHTML='<div class="loading">加载中…</div>'
-  try {
-    const totals={}, promises=[]
-    for(let i=0;i<statsDays;i++) { const d=new Date(); d.setDate(d.getDate()-i); promises.push(fetch(`/entries/${d.toLocaleDateString('sv-SE')}`).then(r=>r.json())) }
+  try{
+    const totals={},promises=[]
+    for(let i=0;i<statsDays;i++){const d=new Date();d.setDate(d.getDate()-i);promises.push(fetch(`/entries/${d.toLocaleDateString('sv-SE')}`).then(r=>r.json()))}
     const res=await Promise.all(promises)
-    res.forEach(d=>{ (d.entries||[]).forEach(e=>{ totals[e.category]=(totals[e.category]||0)+(e.duration||0) }) })
+    res.forEach(d=>{(d.entries||[]).forEach(e=>{totals[e.category]=(totals[e.category]||0)+(e.duration||0)})})
     const sorted=Object.entries(totals).sort((a,b)=>b[1]-a[1])
     if(!sorted.length){el.innerHTML='<div class="empty">暂无数据</div>';return}
-    if(statsView==='bar') renderBarChart(el,sorted)
-    else renderPieChart(el,sorted)
-  } catch(e){el.innerHTML='<div class="empty">加载失败</div>'}
+    statsView==='bar'?renderBar(el,sorted):renderPie(el,sorted)
+  }catch(e){el.innerHTML='<div class="empty">加载失败</div>'}
 }
-function renderBarChart(el, sorted) {
+function renderBar(el,sorted){
   const max=sorted[0][1]; el.innerHTML=''
-  sorted.forEach(([cat,mins])=>{ const r=document.createElement('div'); r.className='stat-bar-row'; r.innerHTML=`<div class="stat-label" style="color:${c(cat)}">${cat}</div><div class="stat-bar-wrap"><div class="stat-bar" style="width:${(mins/max*100).toFixed(1)}%;background:${c(cat)}"></div></div><div class="stat-val">${fmtM(mins)}</div>`; el.appendChild(r) })
+  sorted.forEach(([cat,mins])=>{const r=document.createElement('div');r.className='stat-bar-row';r.innerHTML=`<div class="stat-label" style="color:${c(cat)}">${cat}</div><div class="stat-bar-wrap"><div class="stat-bar" style="width:${(mins/max*100).toFixed(1)}%;background:${c(cat)}"></div></div><div class="stat-val">${fmtM(mins)}</div>`;el.appendChild(r)})
 }
-function renderPieChart(el, sorted) {
-  const total=sorted.reduce((s,[,m])=>s+m,0)
-  const size=Math.min(window.innerWidth-64, 280)
-  const cx=size/2, cy=size/2, r=size/2-10
+function renderPie(el,sorted){
+  const total=sorted.reduce((s,[,m])=>s+m,0), sz=Math.min(window.innerWidth-64,280), cx=sz/2,cy=sz/2,r=sz/2-10
   let angle=-Math.PI/2, paths=''
-  sorted.forEach(([cat,mins])=>{
-    const sweep=(mins/total)*Math.PI*2, steps=Math.max(4,Math.ceil(sweep*r/4))
-    let d=`M${cx},${cy}`
-    for(let i=0;i<=steps;i++){ const a=angle+(sweep*i/steps); d+=`L${cx+Math.cos(a)*r},${cy+Math.sin(a)*r}` }
-    d+='Z'; paths+=`<path d="${d}" fill="${c(cat)}"/>`; angle+=sweep
-  })
-  // donut hole
-  paths+=`<circle cx="${cx}" cy="${cy}" r="${r*0.5}" fill="white"/>`
-  // legend
+  sorted.forEach(([cat,mins])=>{const sw=(mins/total)*Math.PI*2,st=Math.max(4,Math.ceil(sw*r/4));let d=`M${cx},${cy}`;for(let i=0;i<=st;i++){const a=angle+(sw*i/st);d+=`L${cx+Math.cos(a)*r},${cy+Math.sin(a)*r}`};d+='Z';paths+=`<path d="${d}" fill="${c(cat)}"/>`;angle+=sw})
+  paths+=`<circle cx="${cx}" cy="${cy}" r="${r*.5}" fill="white"/>`
   let legend='<div style="display:flex;flex-direction:column;gap:6px;margin-top:14px">'
-  sorted.forEach(([cat,mins])=>{ legend+=`<div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:${c(cat)};flex-shrink:0"></div><span style="font-size:13px;flex:1">${cat}</span><span style="font-size:12px;color:var(--sub)">${fmtM(mins)} (${(mins/total*100).toFixed(0)}%)</span></div>` })
+  sorted.forEach(([cat,mins])=>{legend+=`<div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:${c(cat)};flex-shrink:0"></div><span style="font-size:13px;flex:1">${cat}</span><span style="font-size:12px;color:var(--sub)">${fmtM(mins)} (${(mins/total*100).toFixed(0)}%)</span></div>`})
   legend+='</div>'
-  el.innerHTML=`<svg width="${size}" height="${size}" style="display:block;margin:0 auto">${paths}</svg>${legend}`
+  el.innerHTML=`<svg width="${sz}" height="${sz}" style="display:block;margin:0 auto">${paths}</svg>${legend}`
 }
 
 // ── Backlog ───────────────────────────────────────────────────────
-async function loadBacklog() {
+async function loadBacklog(){
   const el=document.getElementById('backlog-list'); el.innerHTML='<div class="loading">加载中…</div>'
-  try {
+  try{
     const r=await fetch('/backlog'); const d=await r.json(); const items=d.items||[]
     if(!items.length){el.innerHTML='<div style="background:var(--card);border-radius:12px"><div class="empty">没有待安排的事项</div></div>';return}
     el.innerHTML=''
     items.forEach(item=>{
-      const text=typeof item==='string'?item:(item.text||'')
-      const id=item.id||''; const date=item.original_date||''; const reason=item.skip_reason||''
+      const text=typeof item==='string'?item:(item.text||''), id=item.id||'', date=item.original_date||'', reason=item.skip_reason||''
       const wrap=document.createElement('div'); wrap.className='backlog-wrap'
-      wrap.innerHTML=`
-        <div class="backlog-actions">
-          <button class="backlog-action-btn schedule" data-id="${id}" data-task="${text}">排入</button>
-          <button class="backlog-action-btn del"      data-id="${id}">删除</button>
-        </div>
-        <div class="backlog-item">
-          <div class="backlog-dot" style="background:${c(text)}"></div>
-          <div><div style="font-size:15px">${text}</div>${date?`<div class="backlog-meta">${date}${reason?' · '+reason:''}</div>`:''}</div>
-        </div>`
-      // swipe
-      const inner=wrap.querySelector('.backlog-item')
-      const actW=120
-      let sx=0,sy=0,swiped=false
-      inner.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true})
-      inner.addEventListener('touchmove',e=>{
-        const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy
-        if(Math.abs(dx)>Math.abs(dy)){ e.preventDefault(); const tx=Math.max(-actW,Math.min(0,dx+(swiped?-actW:0))); inner.style.transform=`translateX(${tx}px)` }
-      },{passive:false})
-      inner.addEventListener('touchend',e=>{
-        const dx=e.changedTouches[0].clientX-sx
-        if((!swiped&&dx<-40)||(swiped&&dx<0)){ inner.style.transform=`translateX(-${actW}px)`;swiped=true }
-        else{ inner.style.transform='';swiped=false }
-      })
-      // actions
-      wrap.querySelector('.backlog-action-btn.schedule').addEventListener('click',e=>{ inner.style.transform='';swiped=false; scheduleBacklogItem(text) })
-      wrap.querySelector('.backlog-action-btn.del').addEventListener('click',async e=>{ await fetch(`/backlog/${id}`,{method:'DELETE'}); loadBacklog() })
+      wrap.innerHTML=`<div class="backlog-actions"><button class="backlog-action-btn schedule" data-id="${id}" data-task="${text}">排入</button><button class="backlog-action-btn del" data-id="${id}">删除</button></div><div class="backlog-item"><div class="backlog-dot" style="background:${c(text)}"></div><div><div style="font-size:15px">${text}</div>${date?`<div class="backlog-meta">${date}${reason?' · '+reason:''}</div>`:''}</div></div>`
+      const inner=wrap.querySelector('.backlog-item'), actW=120
+      let sx=0,swiped=false
+      inner.addEventListener('touchstart',e=>{sx=e.touches[0].clientX},{passive:true})
+      inner.addEventListener('touchmove',e=>{const dx=e.touches[0].clientX-sx;if(Math.abs(dx)>5){e.preventDefault();inner.style.transform=`translateX(${Math.max(-actW,Math.min(0,dx+(swiped?-actW:0)))}px)`}},{passive:false})
+      inner.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if((!swiped&&dx<-40)||(swiped&&dx<0)){inner.style.transform=`translateX(-${actW}px)`;swiped=true}else{inner.style.transform='';swiped=false}})
+      wrap.querySelector('.backlog-action-btn.schedule').addEventListener('click',()=>{inner.style.transform='';swiped=false;selTask=text;showAddModal('planner',snap15(nowMin()))})
+      wrap.querySelector('.backlog-action-btn.del').addEventListener('click',async()=>{await fetch(`/backlog/${id}`,{method:'DELETE'});loadBacklog()})
       el.appendChild(wrap)
     })
-  } catch(e){document.getElementById('backlog-list').innerHTML='<div style="background:var(--card);border-radius:12px"><div class="empty">加载失败</div></div>'}
-}
-
-function scheduleBacklogItem(task) {
-  // pre-select task and open add-to-planner modal
-  selTask=task
-  const snap=Math.round(nowMin()/15)*15
-  const tasks=[...(appState?.work_tasks||[]),...(appState?.life_tasks||[])]
-  const taskBtns=tasks.map(t=>`<button class="modal-task-btn${t===task?' selected':''}" data-task="${t}" style="border-left-color:${c(t)};color:${c(t)}${t===task?';border:2px solid var(--blue);background:rgba(0,122,255,0.08)':''}" onclick="selModalTask(this,'${t.replace(/'/g,"\\'")}'">${t}</button>`).join('')
-  openModal(`<h2>排入计划</h2>
-    <div class="modal-task-grid">${taskBtns}</div>
-    <div class="time-row">
-      <div class="time-input-wrap"><label>开始</label><input type="time" id="m-start" value="${m2t(snap)}"></div>
-      <div class="time-input-wrap"><label>结束</label><input type="time" id="m-end"   value="${m2t(snap+60)}"></div>
-    </div>
-    <div class="modal-btns">
-      <button class="btn" style="background:var(--bg);color:var(--sub)" onclick="closeModal()">取消</button>
-      <button class="btn btn-blue" onclick="submitAdd('planner')">排入</button>
-    </div>`)
+  }catch(e){el.innerHTML='<div style="background:var(--card);border-radius:12px"><div class="empty">加载失败</div></div>'}
 }
 
 // ── Init ─────────────────────────────────────────────────────────
 loadState()
-setInterval(loadState, 8000)
+setInterval(loadState,8000)
 </script>
 </body>
 </html>

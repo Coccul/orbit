@@ -833,10 +833,34 @@ class Orbit(rumps.App):
                 else:
                     self.send_response(404); self.end_headers()
 
+            def do_PUT(self):
+                if self.path.startswith("/planner/") and "/block/" in self.path:
+                    parts = [p for p in self.path.split("/") if p]
+                    target, block_id = parts[1], parts[3]
+                    n = int(self.headers.get("Content-Length", 0))
+                    try:
+                        data = json.loads(self.rfile.read(n))
+                        sched = APP_SUPPORT / "schedules.json"
+                        all_data = json.loads(sched.read_text(encoding="utf-8")) if sched.exists() else {}
+                        blocks = all_data.setdefault(target, {}).setdefault("blocks", [])
+                        for b in blocks:
+                            if b.get("id") == block_id:
+                                if "start_min" in data: b["start_min"] = int(data["start_min"])
+                                if "end_min"   in data: b["end_min"]   = int(data["end_min"])
+                                if "text"      in data: b["text"]      = data["text"]
+                                if "done"      in data: b["done"]      = data["done"]
+                                break
+                        sched.write_text(json.dumps(all_data, ensure_ascii=False, indent=2), encoding="utf-8")
+                        self._send_json({"ok": True})
+                    except Exception as e:
+                        self._send_json({"error": str(e)}, 500)
+                else:
+                    self.send_response(404); self.end_headers()
+
             def do_OPTIONS(self):
                 self.send_response(204)
                 self.send_header("Access-Control-Allow-Origin", "*")
-                self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+                self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
                 self.send_header("Access-Control-Allow-Headers", "Content-Type")
                 self.end_headers()
 
