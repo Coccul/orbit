@@ -50,9 +50,9 @@
     .tl-label { position:absolute; right:6px; font-size:10px; color:var(--sub); transform:translateY(-50%); white-space:nowrap; }
     .tl-grid { flex:1; position:relative; background:var(--card); border-radius:10px; overflow:hidden; cursor:crosshair; }
     /* grid lines */
-    .ln-hour    { position:absolute; left:0; right:0; border-top:1px solid rgba(60,60,67,0.18); pointer-events:none; }
-    .ln-half    { position:absolute; left:0; right:0; border-top:1px solid rgba(60,60,67,0.08); pointer-events:none; }
-    .ln-quarter { position:absolute; left:0; right:0; border-top:1px dashed rgba(60,60,67,0.04); pointer-events:none; }
+    .ln-hour    { position:absolute; left:0; right:0; border-top:1px solid rgba(60,60,67,0.2);  pointer-events:none; }
+    .ln-half    { position:absolute; left:0; right:0; border-top:1px solid rgba(60,60,67,0.1);  pointer-events:none; }
+    .ln-quarter { position:absolute; left:0; right:0; border-top:1px solid rgba(60,60,67,0.06); pointer-events:none; }
     .ln-now     { position:absolute; left:0; right:0; border-top:2px solid var(--red); z-index:10; pointer-events:none; }
     .ln-now-dot { position:absolute; left:-4px; top:-4px; width:8px; height:8px; background:var(--red); border-radius:50%; }
     /* blocks */
@@ -342,71 +342,127 @@ function renderPlanner(blocks){
 function makePlannerBlock(b){
   const top=(b.start_min-START)*PX, h=Math.max((b.end_min-b.start_min)*PX,20)
   const col=b.color||c(b.text)
-  const div=document.createElement('div')
-  div.className='tl-block'+(b.done?' done':'')
-  div.style.cssText=`top:${top}px;height:${h}px;background:${col};cursor:grab`
-  div.dataset.id=b.id; div.dataset.sm=b.start_min; div.dataset.em=b.end_min
-  div.innerHTML=`${h>20?`<div class="b-name">${b.text}</div>`:''}${h>34?`<div class="b-time">${m2t(b.start_min)}–${m2t(b.end_min)}</div>`:''}${h>28?'<div class="b-rsz" data-rsz="1"></div>':''}`
+  const ACT_W=110
 
-  // ── drag to move ──────────────────────────────────────────────
-  let dragStartY=0, dragStartMin=0, isDragging=false, isResizing=false, resizeStartY=0, resizeStartEM=0
-  const grid=()=>div.parentElement
-  const scrollEl=()=>document.getElementById('planner-scroll')
+  // wrapper (position:absolute, clips swipe)
+  const wrap=document.createElement('div')
+  wrap.style.cssText=`position:absolute;top:${top}px;height:${h}px;left:2px;right:2px;overflow:hidden;border-radius:6px;z-index:2`
+
+  // action buttons behind
+  const acts=document.createElement('div')
+  acts.style.cssText=`position:absolute;right:0;top:0;bottom:0;display:flex;width:${ACT_W}px`
+  acts.innerHTML=`<button style="flex:1;border:none;background:var(--green);color:white;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer">完成</button><button style="flex:1;border:none;background:#FF9500;color:white;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer">Skip</button>`
+  wrap.appendChild(acts)
+
+  // block content
+  const div=document.createElement('div')
+  div.className='tl-block'+(b.done?' done':'')+(b.skipped?' done':'')
+  div.style.cssText=`position:absolute;inset:0;background:${col};border-radius:6px;cursor:grab;transition:transform 0s`
+  div.dataset.id=b.id; div.dataset.sm=b.start_min; div.dataset.em=b.end_min
+  div.innerHTML=`${h>20?`<div class="b-name">${b.skipped?'⏭ ':b.done?'✓ ':''}${b.text}</div>`:''}${h>34?`<div class="b-time">${m2t(b.start_min)}–${m2t(b.end_min)}</div>`:''}${h>28?'<div class="b-rsz" data-rsz="1"></div>':''}`
+  wrap.appendChild(div)
+
+  // action btn handlers
+  acts.children[0].addEventListener('click',()=>{ resetSwipe(); togglePlanDone(b.id) })
+  acts.children[1].addEventListener('click',()=>{ resetSwipe(); openSkipModal(b.id, b.text) })
+
+  let swiped=false
+  function resetSwipe(){ div.style.transform=''; div.style.transition='transform .2s ease'; swiped=false }
+
+  // ── touch gestures ────────────────────────────────────────────
+  let tx=0, ty=0, dragStartY=0, dragStartMin=0, isDragging=false, isResizing=false, resizeStartY=0, resizeStartEM=0, gestureDecided=false, gestureIsSwipe=false
 
   div.addEventListener('touchstart',e=>{
+    tx=e.touches[0].clientX; ty=e.touches[0].clientY
+    gestureDecided=false; gestureIsSwipe=false
     if(e.target.dataset.rsz){
-      // resize
-      isResizing=true; isDragging=false
-      resizeStartY=e.touches[0].clientY; resizeStartEM=parseInt(div.dataset.em)
-      e.stopPropagation()
+      isResizing=true; isDragging=false; gestureDecided=true; gestureIsSwipe=false
+      resizeStartY=ty; resizeStartEM=parseInt(div.dataset.em)
     } else {
-      // drag
-      isDragging=true; isResizing=false
-      dragStartY=e.touches[0].clientY; dragStartMin=parseInt(div.dataset.sm)
+      isDragging=false; isResizing=false
+      dragStartY=ty; dragStartMin=parseInt(div.dataset.sm)
     }
   },{passive:true})
 
   div.addEventListener('touchmove',e=>{
-    e.preventDefault()
-    const touch=e.touches[0]
+    const cx=e.touches[0].clientX, cy=e.touches[0].clientY
+    const dx=cx-tx, dy=cy-ty
+    if(!gestureDecided&&(Math.abs(dx)>6||Math.abs(dy)>6)){
+      gestureIsSwipe=Math.abs(dx)>Math.abs(dy)
+      gestureDecided=true
+      if(!gestureIsSwipe) isDragging=true
+    }
+    if(gestureIsSwipe){
+      e.preventDefault()
+      const tx2=swiped?dx-ACT_W:dx
+      div.style.transition='none'
+      div.style.transform=`translateX(${Math.max(-ACT_W,Math.min(0,tx2))}px)`
+      return
+    }
     if(isResizing){
-      const dy=touch.clientY-resizeStartY
-      const newEM=snap15(resizeStartEM+dy/PX)
-      const minEM=parseInt(div.dataset.sm)+15
-      const clampEM=Math.max(minEM,Math.min(END,newEM))
+      e.preventDefault()
+      const newEM=snap15(resizeStartEM+(cy-resizeStartY)/PX)
+      const clampEM=Math.max(parseInt(div.dataset.sm)+15,Math.min(END,newEM))
       div.dataset.em=clampEM
-      const newH=Math.max((clampEM-parseInt(div.dataset.sm))*PX,20)
-      div.style.height=newH+'px'
-      div.querySelector('.b-name')&&(div.querySelector('.b-name').textContent=b.text)
+      wrap.style.height=Math.max((clampEM-parseInt(div.dataset.sm))*PX,20)+'px'
       div.querySelector('.b-time')&&(div.querySelector('.b-time').textContent=`${m2t(parseInt(div.dataset.sm))}–${m2t(clampEM)}`)
     } else if(isDragging){
-      const dy=touch.clientY-dragStartY
+      e.preventDefault()
       const dur=parseInt(div.dataset.em)-parseInt(div.dataset.sm)
-      const newSM=snap15(dragStartMin+dy/PX)
+      const newSM=snap15(dragStartMin+(cy-dragStartY)/PX)
       const clampSM=Math.max(START,Math.min(END-dur,newSM))
       div.dataset.sm=clampSM; div.dataset.em=clampSM+dur
-      div.style.top=(clampSM-START)*PX+'px'
+      wrap.style.top=(clampSM-START)*PX+'px'
       div.querySelector('.b-time')&&(div.querySelector('.b-time').textContent=`${m2t(clampSM)}–${m2t(clampSM+dur)}`)
     }
   },{passive:false})
 
   div.addEventListener('touchend',async e=>{
-    if(isResizing||isDragging){
+    const moved=Math.abs(e.changedTouches[0].clientX-tx)>6||Math.abs(e.changedTouches[0].clientY-ty)>6
+    if(gestureIsSwipe){
+      const dx=e.changedTouches[0].clientX-tx
+      div.style.transition='transform .2s ease'
+      if((!swiped&&dx<-40)||(swiped&&dx<0)){ div.style.transform=`translateX(-${ACT_W}px)`; swiped=true }
+      else{ div.style.transform=''; swiped=false }
+    } else if(isResizing||isDragging){
       const sm=parseInt(div.dataset.sm), em=parseInt(div.dataset.em)
-      isResizing=false; isDragging=false
+      isDragging=false; isResizing=false
       if(sm!==b.start_min||em!==b.end_min){
         b.start_min=sm; b.end_min=em
         await fetch(`/planner/${tod()}/block/${b.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({start_min:sm,end_min:em})})
       }
-    } else {
-      // tap → action sheet
+    } else if(!moved){
+      // tap → delete only (完成/skip via swipe)
       openModal(`<h2>${b.text}</h2><p style="color:var(--sub);font-size:13px;margin-bottom:16px">${m2t(b.start_min)} – ${m2t(b.end_min)}</p>
-        <button class="action-btn" style="background:var(--bg)" onclick="togglePlanDone('${b.id}')">✓ 标记完成 / 取消</button>
+        <button class="action-btn" style="background:var(--bg)" onclick="togglePlanDone('${b.id}')">✓ 完成 / 取消完成</button>
+        <button class="action-btn" style="background:#FFF9F0;color:#FF9500" onclick="openSkipModal('${b.id}','${b.text.replace(/'/g,"\\'")}')" >⏭ Skip</button>
         <button class="action-btn" style="background:#FFF0F0;color:var(--red)" onclick="deletePlanBlock('${b.id}')">删除</button>
         <button class="action-btn" style="background:var(--bg);color:var(--sub)" onclick="closeModal()">取消</button>`)
     }
   })
-  return div
+  return wrap
+}
+
+function openSkipModal(id, text){
+  closeModal()
+  openModal(`<h2>Skip「${text}」</h2>
+    <p style="color:var(--sub);font-size:13px;margin-bottom:12px">跳过原因（会保存到待安排）</p>
+    <input id="skip-reason" type="text" placeholder="原因…" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);font-size:16px;font-family:inherit;background:var(--bg);margin-bottom:16px">
+    <div class="modal-btns">
+      <button class="btn" style="background:var(--bg);color:var(--sub)" onclick="closeModal()">取消</button>
+      <button class="btn" style="background:#FF9500;color:white" onclick="submitSkip('${id}','${text.replace(/'/g,"\\'")}')">确认 Skip</button>
+    </div>`)
+  setTimeout(()=>document.getElementById('skip-reason')?.focus(),100)
+}
+
+async function submitSkip(id, text){
+  const reason=document.getElementById('skip-reason')?.value||''
+  closeModal()
+  // mark block as skipped
+  await fetch(`/planner/${tod()}/block/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({skipped:true,skip_reason:reason,done:false})})
+  // add to pending/backlog
+  await fetch('/backlog',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,original_date:tod(),skip_reason:reason})})
+  loadPlanner()
 }
 
 async function togglePlanDone(id){closeModal();await fetch(`/planner/${tod()}/block/${id}/toggle`,{method:'POST'});loadPlanner()}

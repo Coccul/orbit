@@ -845,10 +845,12 @@ class Orbit(rumps.App):
                         blocks = all_data.setdefault(target, {}).setdefault("blocks", [])
                         for b in blocks:
                             if b.get("id") == block_id:
-                                if "start_min" in data: b["start_min"] = int(data["start_min"])
-                                if "end_min"   in data: b["end_min"]   = int(data["end_min"])
-                                if "text"      in data: b["text"]      = data["text"]
-                                if "done"      in data: b["done"]      = data["done"]
+                                if "start_min"   in data: b["start_min"]   = int(data["start_min"])
+                                if "end_min"     in data: b["end_min"]     = int(data["end_min"])
+                                if "text"        in data: b["text"]        = data["text"]
+                                if "done"        in data: b["done"]        = data["done"]
+                                if "skipped"     in data: b["skipped"]     = data["skipped"]
+                                if "skip_reason" in data: b["skip_reason"] = data["skip_reason"]
                                 break
                         sched.write_text(json.dumps(all_data, ensure_ascii=False, indent=2), encoding="utf-8")
                         self._send_json({"ok": True})
@@ -865,7 +867,29 @@ class Orbit(rumps.App):
                 self.end_headers()
 
             def do_POST(self):
-                if self.path == "/entries":
+                if self.path == "/backlog":
+                    n = int(self.headers.get("Content-Length", 0))
+                    try:
+                        data = json.loads(self.rfile.read(n))
+                        pending = APP_SUPPORT / "pending.json"
+                        raw = json.loads(pending.read_text(encoding="utf-8")) if pending.exists() else {}
+                        items = raw.get("items", []) if isinstance(raw, dict) else raw
+                        items.append({
+                            "id":            uuid.uuid4().hex[:8],
+                            "text":          data.get("text", ""),
+                            "original_date": data.get("original_date", date.today().strftime("%Y-%m-%d")),
+                            "skip_reason":   data.get("skip_reason", ""),
+                            "added_at":      datetime.now().isoformat(),
+                        })
+                        if isinstance(raw, dict):
+                            raw["items"] = items
+                        else:
+                            raw = {"items": items}
+                        pending.write_text(json.dumps(raw, ensure_ascii=False, indent=2), encoding="utf-8")
+                        self._send_json({"ok": True})
+                    except Exception as e:
+                        self._send_json({"error": str(e)}, 500)
+                elif self.path == "/entries":
                     # POST /entries — add manual entry
                     n = int(self.headers.get("Content-Length", 0))
                     try:
