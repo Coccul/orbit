@@ -15,6 +15,9 @@
       --text: #000000;
       --sub: #8E8E93;
       --border: rgba(60,60,67,0.12);
+      --blue: #007AFF;
+      --green: #34C759;
+      --red: #FF3B30;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
@@ -48,157 +51,195 @@
     }
     .tab {
       flex: 1; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 2px;
-      padding: 8px 0;
+      justify-content: center; gap: 1px;
+      padding: 6px 0;
       border: none; background: none; cursor: pointer;
-      color: var(--sub); font-size: 10px; font-family: inherit;
+      color: var(--sub); font-size: 9px; font-family: inherit;
     }
-    .tab.active { color: #007AFF; }
-    .tab-icon { font-size: 22px; line-height: 1; }
+    .tab.active { color: var(--blue); }
+    .tab-icon { font-size: 20px; line-height: 1.2; }
 
     /* Card */
-    .card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
+    .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
 
-    /* Current task */
+    /* Page header */
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .page-header h1 { font-size: 22px; font-weight: 700; }
+    .page-header span { font-size: 13px; color: var(--sub); }
+
+    /* Button */
+    .btn {
+      padding: 10px 24px; border-radius: 20px; border: none;
+      font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit;
+    }
+    .btn-green { background: var(--green); color: white; }
+    .btn-red   { background: var(--red);   color: white; }
+    .btn-blue  { background: var(--blue);  color: white; }
+    .btn-sm    { padding: 6px 14px; font-size: 13px; }
+    .btn-icon  { background: none; border: none; font-size: 20px; cursor: pointer; padding: 4px; }
+
+    /* ── TIMER ─────────────────────────────────────────────── */
     #current-card {
-      text-align: center;
-      padding: 28px 16px 20px;
-      border-left: 5px solid #E2E8F0;
-      transition: border-color 0.3s;
+      text-align: center; padding: 24px 16px 18px;
+      border-left: 5px solid #E2E8F0; transition: border-color 0.3s;
     }
-    #task-name {
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 10px;
-      color: var(--sub);
-    }
+    #task-name { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: var(--sub); }
     #elapsed {
-      font-size: 56px;
-      font-weight: 200;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -2px;
-      color: var(--text);
-      margin-bottom: 20px;
-      line-height: 1;
+      font-size: 54px; font-weight: 200;
+      font-variant-numeric: tabular-nums; letter-spacing: -2px;
+      margin-bottom: 18px; line-height: 1;
     }
     .btn-row { display: flex; gap: 10px; justify-content: center; }
-    .btn {
-      padding: 10px 28px;
-      border-radius: 20px;
-      border: none;
-      font-size: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: inherit;
-    }
-    .btn-finish { background: #34C759; color: white; }
-
-    /* Section */
     .section-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--sub);
-      letter-spacing: 0.3px;
-      margin: 16px 4px 8px;
+      font-size: 12px; font-weight: 600; color: var(--sub);
+      letter-spacing: 0.3px; margin: 14px 4px 8px;
+      text-transform: uppercase;
     }
-
-    /* Task grid */
-    .task-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
+    .task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
     .task-btn {
-      padding: 11px 10px;
-      border-radius: 10px;
-      border: none;
-      background: var(--card);
-      font-size: 13px;
-      font-family: inherit;
-      text-align: left;
-      cursor: pointer;
-      border-left: 3px solid;
-      line-height: 1.3;
+      padding: 11px 10px; border-radius: 10px; border: none;
+      background: var(--card); font-size: 13px; font-family: inherit;
+      text-align: left; cursor: pointer; border-left: 3px solid; line-height: 1.3;
     }
     .task-btn.current { outline: 2px solid; outline-offset: -1px; }
-
-    /* Checkin */
     .checkin-item {
       display: flex; align-items: center; gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer; user-select: none;
+      padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer;
     }
     .checkin-item:last-child { border-bottom: none; }
     .check-circle {
-      width: 22px; height: 22px;
-      border-radius: 50%;
+      width: 22px; height: 22px; border-radius: 50%;
       border: 2px solid #C7C7CC;
       display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; font-size: 13px;
-      transition: all 0.2s;
+      flex-shrink: 0; font-size: 13px; transition: all 0.2s;
     }
-    .check-circle.done { background: #34C759; border-color: #34C759; color: white; }
+    .check-circle.done { background: var(--green); border-color: var(--green); color: white; }
 
-    /* Timeline */
+    /* ── VISUAL PLANNER ────────────────────────────────────── */
+    #planner-scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .timeline-wrap { display: flex; position: relative; }
+    .time-labels { width: 42px; flex-shrink: 0; position: relative; }
+    .time-label {
+      position: absolute; right: 8px;
+      font-size: 10px; color: var(--sub);
+      transform: translateY(-50%);
+    }
+    .timeline-grid {
+      flex: 1; position: relative;
+      background: var(--card); border-radius: 10px; overflow: hidden;
+    }
+    .hour-line {
+      position: absolute; left: 0; right: 0;
+      border-top: 1px solid var(--border);
+    }
+    .half-line {
+      position: absolute; left: 0; right: 0;
+      border-top: 1px dashed rgba(0,0,0,0.05);
+    }
+    .timeline-block {
+      position: absolute; left: 2px; right: 2px;
+      border-radius: 6px; padding: 4px 6px;
+      font-size: 12px; font-weight: 500;
+      cursor: pointer; overflow: hidden;
+      display: flex; flex-direction: column; justify-content: center;
+      color: white; user-select: none;
+    }
+    .timeline-block .b-text { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .timeline-block .b-time { font-size: 10px; opacity: 0.85; }
+    .timeline-block.done { opacity: 0.45; text-decoration: line-through; }
+    .timeline-tap-hint {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--sub); font-size: 13px; pointer-events: none;
+    }
+
+    /* ── TIMELINE (today log) ─────────────────────────────── */
     .entry-row {
       display: flex; align-items: center; gap: 10px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
+      padding: 10px 0; border-bottom: 1px solid var(--border);
     }
     .entry-row:last-child { border-bottom: none; }
     .entry-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .entry-info { flex: 1; }
     .entry-name { font-size: 15px; font-weight: 500; }
     .entry-time { font-size: 12px; color: var(--sub); margin-top: 1px; }
-    .entry-dur { font-size: 13px; color: var(--sub); font-variant-numeric: tabular-nums; }
+    .entry-dur  { font-size: 13px; color: var(--sub); font-variant-numeric: tabular-nums; }
 
-    /* Planner */
-    .block-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
+    /* ── STATS ─────────────────────────────────────────────── */
+    .stats-range { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+    .range-btn {
+      padding: 5px 12px; border-radius: 14px; border: 1px solid var(--border);
+      background: var(--card); font-size: 13px; cursor: pointer; font-family: inherit;
     }
-    .block-row:last-child { border-bottom: none; }
-    .block-bar { width: 4px; height: 44px; border-radius: 2px; flex-shrink: 0; }
-    .block-info { flex: 1; }
-    .block-text { font-size: 15px; font-weight: 500; }
-    .block-time { font-size: 12px; color: var(--sub); margin-top: 2px; }
-    .block-done-btn {
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      border: 2px solid #C7C7CC;
-      background: none; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; font-size: 14px;
-      transition: all 0.2s;
+    .range-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+    .stat-bar-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 0; border-bottom: 1px solid var(--border);
     }
-    .block-done-btn.done { background: #34C759; border-color: #34C759; color: white; }
+    .stat-bar-row:last-child { border-bottom: none; }
+    .stat-label { width: 110px; font-size: 13px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .stat-bar-wrap { flex: 1; height: 10px; background: var(--bg); border-radius: 5px; overflow: hidden; }
+    .stat-bar { height: 100%; border-radius: 5px; }
+    .stat-val { width: 36px; font-size: 12px; color: var(--sub); text-align: right; font-variant-numeric: tabular-nums; }
 
-    /* Page headers */
-    .page-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 14px;
+    /* ── BACKLOG ─────────────────────────────────────────────── */
+    .backlog-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
     }
-    .page-header h1 { font-size: 22px; font-weight: 700; }
-    .page-header span { font-size: 14px; color: var(--sub); }
+    .backlog-item:last-child { border-bottom: none; }
+    .backlog-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+    .backlog-text { flex: 1; font-size: 15px; }
+    .backlog-del { background: none; border: none; color: var(--sub); font-size: 18px; cursor: pointer; padding: 0 4px; }
 
-    /* Empty */
-    .empty { text-align: center; color: var(--sub); padding: 36px 0; font-size: 15px; }
+    /* ── MODAL ─────────────────────────────────────────────── */
+    #modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 100;
+      align-items: flex-end; justify-content: center;
+    }
+    #modal-overlay.open { display: flex; }
+    #modal {
+      background: var(--card); border-radius: 18px 18px 0 0;
+      padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+      width: 100%; max-height: 85dvh; overflow-y: auto;
+    }
+    #modal h2 { font-size: 17px; font-weight: 600; margin-bottom: 14px; }
+    .modal-task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .modal-task-btn {
+      padding: 10px 8px; border-radius: 10px; border: 2px solid transparent;
+      background: var(--bg); font-size: 13px; font-family: inherit;
+      text-align: left; cursor: pointer; border-left: 3px solid;
+    }
+    .modal-task-btn.selected { border-color: var(--blue); background: rgba(0,122,255,0.08); }
+    .time-row { display: flex; gap: 10px; margin-bottom: 16px; }
+    .time-input-wrap { flex: 1; }
+    .time-input-wrap label { font-size: 12px; color: var(--sub); display: block; margin-bottom: 4px; }
+    .time-input-wrap input {
+      width: 100%; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid var(--border); font-size: 16px; font-family: inherit;
+      background: var(--bg);
+    }
+    .modal-btns { display: flex; gap: 10px; }
+    .modal-btns .btn { flex: 1; }
+    .block-actions { display: flex; flex-direction: column; gap: 10px; }
+    .action-btn {
+      padding: 14px; border-radius: 12px; border: none;
+      font-size: 16px; font-family: inherit; cursor: pointer; text-align: center;
+    }
 
-    /* Loading */
+    /* Empty / loading */
+    .empty   { text-align: center; color: var(--sub); padding: 36px 0; font-size: 15px; }
     .loading { text-align: center; color: var(--sub); padding: 20px 0; font-size: 14px; }
   </style>
 </head>
 <body>
 <div id="app">
-  <!-- Timer -->
+
+  <!-- ── TIMER ── -->
   <div class="page active" id="page-timer">
     <div class="card" id="current-card">
       <div id="task-name">未开始</div>
@@ -213,7 +254,16 @@
     <div class="card" id="checkin-list"><div class="loading">加载中…</div></div>
   </div>
 
-  <!-- Timeline -->
+  <!-- ── PLANNER ── -->
+  <div class="page" id="page-planner">
+    <div class="page-header">
+      <h1>计划</h1>
+      <button class="btn btn-blue btn-sm" id="planner-add-btn">+ 添加</button>
+    </div>
+    <div id="planner-scroll"></div>
+  </div>
+
+  <!-- ── TIMELINE ── -->
   <div class="page" id="page-timeline">
     <div class="page-header">
       <h1>今日记录</h1>
@@ -222,32 +272,51 @@
     <div class="card" id="entries-list"><div class="loading">加载中…</div></div>
   </div>
 
-  <!-- Planner -->
-  <div class="page" id="page-planner">
-    <div class="page-header">
-      <h1>今日计划</h1>
-      <span id="planner-date"></span>
+  <!-- ── STATS ── -->
+  <div class="page" id="page-stats">
+    <div class="page-header"><h1>统计</h1></div>
+    <div class="stats-range" id="stats-range">
+      <button class="range-btn active" data-days="7">近7天</button>
+      <button class="range-btn" data-days="14">近14天</button>
+      <button class="range-btn" data-days="30">近30天</button>
     </div>
-    <div class="card" id="planner-blocks"><div class="loading">加载中…</div></div>
+    <div class="card" id="stats-content"><div class="loading">加载中…</div></div>
   </div>
+
+  <!-- ── BACKLOG ── -->
+  <div class="page" id="page-backlog">
+    <div class="page-header"><h1>待办</h1></div>
+    <div class="card" id="backlog-list"><div class="loading">加载中…</div></div>
+  </div>
+
 </div>
 
+<!-- Tab bar -->
 <nav id="tabbar">
   <button class="tab active" data-page="timer">
-    <span class="tab-icon">⏱</span>
-    <span>计时</span>
-  </button>
-  <button class="tab" data-page="timeline">
-    <span class="tab-icon">📊</span>
-    <span>今日</span>
+    <span class="tab-icon">⏱</span><span>计时</span>
   </button>
   <button class="tab" data-page="planner">
-    <span class="tab-icon">📅</span>
-    <span>计划</span>
+    <span class="tab-icon">📅</span><span>计划</span>
+  </button>
+  <button class="tab" data-page="timeline">
+    <span class="tab-icon">📊</span><span>今日</span>
+  </button>
+  <button class="tab" data-page="stats">
+    <span class="tab-icon">📈</span><span>统计</span>
+  </button>
+  <button class="tab" data-page="backlog">
+    <span class="tab-icon">📋</span><span>待办</span>
   </button>
 </nav>
 
+<!-- Modal -->
+<div id="modal-overlay">
+  <div id="modal"></div>
+</div>
+
 <script>
+// ── Constants ────────────────────────────────────────────────────
 const COLORS = {
   '📈 交易学习':    '#E07068',
   '🔮 塔罗分析':    '#9880CC',
@@ -263,34 +332,36 @@ const COLORS = {
   '🧘 冥想':        '#68B868',
   '📔 日记':        '#E8A0BF',
 }
+const PX_PER_MIN = 1.2
+const DAY_START  = 5 * 60   // 5:00
+const DAY_END    = 24 * 60  // 24:00
 
 function color(task) { return COLORS[task] || '#94A3B8' }
 
 function fmt(secs) {
   secs = Math.floor(secs)
   const m = Math.floor(secs / 60), h = Math.floor(m / 60)
-  if (h > 0) return `${h}:${String(m % 60).padStart(2,'0')}`
-  return `${m}m ${String(secs % 60).padStart(2,'0')}s`
+  return h > 0 ? `${h}:${String(m % 60).padStart(2,'0')}` : `${m}m ${String(secs % 60).padStart(2,'0')}s`
 }
-
 function fmtMins(mins) {
   const h = Math.floor(mins / 60), m = mins % 60
   return h > 0 ? `${h}h${m > 0 ? m + 'm' : ''}` : `${m}m`
 }
-
 function minToTime(min) {
   return `${String(Math.floor(min/60)).padStart(2,'0')}:${String(min%60).padStart(2,'0')}`
 }
-
-function today() {
-  return new Date().toLocaleDateString('sv-SE')
+function timeToMin(str) {
+  const [h, m] = str.split(':').map(Number)
+  return h * 60 + (m || 0)
 }
+function today() { return new Date().toLocaleDateString('sv-SE') }
 
-// ── State ─────────────────────────────────────────────────────────
-let state = null
+// ── State ────────────────────────────────────────────────────────
+let appState = null
 let timerInterval = null
+let statsDays = 7
 
-// ── Tabs ──────────────────────────────────────────────────────────
+// ── Tabs ─────────────────────────────────────────────────────────
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
     const page = btn.dataset.page
@@ -298,9 +369,23 @@ document.querySelectorAll('.tab').forEach(btn => {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
     btn.classList.add('active')
     document.getElementById('page-' + page).classList.add('active')
+    if (page === 'planner')  loadPlanner()
     if (page === 'timeline') loadTimeline()
-    if (page === 'planner') loadPlanner()
+    if (page === 'stats')    loadStats()
+    if (page === 'backlog')  loadBacklog()
   })
+})
+
+// ── Modal ─────────────────────────────────────────────────────────
+function openModal(html) {
+  document.getElementById('modal').innerHTML = html
+  document.getElementById('modal-overlay').classList.add('open')
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open')
+}
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal()
 })
 
 // ── Timer ─────────────────────────────────────────────────────────
@@ -308,11 +393,9 @@ function startElapsedTimer(taskStart) {
   clearInterval(timerInterval)
   const el = document.getElementById('elapsed')
   timerInterval = setInterval(() => {
-    const secs = (Date.now() - new Date(taskStart).getTime()) / 1000
-    el.textContent = fmt(secs)
+    el.textContent = fmt((Date.now() - new Date(taskStart).getTime()) / 1000)
   }, 1000)
 }
-
 function stopElapsedTimer() {
   clearInterval(timerInterval)
   document.getElementById('elapsed').textContent = '—'
@@ -322,63 +405,50 @@ async function sendCommand(action, task, item) {
   const body = { action, timestamp: new Date().toISOString() }
   if (task) body.task = task
   if (item) body.item = item
-  try {
-    await fetch('/command', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    })
-  } catch (e) {}
+  try { await fetch('/command', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }) }
+  catch (e) {}
   await loadState()
 }
 
 async function loadState() {
   try {
     const res = await fetch('/state')
-    state = await res.json()
+    appState = await res.json()
     renderTimer()
   } catch (e) {}
 }
 
 function renderTimer() {
-  if (!state) return
-  const task = state.current_task
+  if (!appState) return
+  const task = appState.current_task
   const c = task ? color(task) : '#E2E8F0'
-  const card = document.getElementById('current-card')
-
-  card.style.borderLeftColor = c
+  document.getElementById('current-card').style.borderLeftColor = c
   const nameEl = document.getElementById('task-name')
   nameEl.textContent = task || '未开始'
   nameEl.style.color = task ? c : 'var(--sub)'
 
-  if (task && state.task_start) {
-    const secs = (Date.now() - new Date(state.task_start).getTime()) / 1000
-    document.getElementById('elapsed').textContent = fmt(secs)
-    startElapsedTimer(state.task_start)
+  if (task && appState.task_start) {
+    document.getElementById('elapsed').textContent = fmt((Date.now() - new Date(appState.task_start).getTime()) / 1000)
+    startElapsedTimer(appState.task_start)
   } else {
     stopElapsedTimer()
   }
 
-  // Action buttons
   const btnsEl = document.getElementById('action-btns')
   if (task) {
+    btnsEl.innerHTML = ''
     const btn = document.createElement('button')
-    btn.className = 'btn btn-finish'
+    btn.className = 'btn btn-green'
     btn.textContent = '结束'
     btn.addEventListener('click', () => sendCommand('finish'))
-    btnsEl.innerHTML = ''
     btnsEl.appendChild(btn)
   } else {
     btnsEl.innerHTML = ''
   }
 
-  // Work tasks
-  renderTaskGrid('work-tasks', state.work_tasks || [], task)
-  // Life tasks
-  renderTaskGrid('life-tasks', state.life_tasks || [], task)
-
-  // Checkin
-  renderCheckin(state.checkin_items || [], state.checkin_done || [])
+  renderTaskGrid('work-tasks', appState.work_tasks || [], task)
+  renderTaskGrid('life-tasks', appState.life_tasks || [], task)
+  renderCheckin(appState.checkin_items || [], appState.checkin_done || [])
 }
 
 function renderTaskGrid(elId, tasks, currentTask) {
@@ -398,10 +468,7 @@ function renderTaskGrid(elId, tasks, currentTask) {
 
 function renderCheckin(items, done) {
   const el = document.getElementById('checkin-list')
-  if (items.length === 0) {
-    el.innerHTML = '<div class="empty">无打卡项目</div>'
-    return
-  }
+  if (items.length === 0) { el.innerHTML = '<div class="empty">无打卡项目</div>'; return }
   el.innerHTML = ''
   items.forEach(item => {
     const isDone = done.includes(item)
@@ -409,11 +476,153 @@ function renderCheckin(items, done) {
     row.className = 'checkin-item'
     row.innerHTML = `
       <div class="check-circle ${isDone ? 'done' : ''}">${isDone ? '✓' : ''}</div>
-      <span style="color:${isDone ? 'var(--sub)' : 'var(--text)'};text-decoration:${isDone ? 'line-through' : 'none'}">${item}</span>
+      <span style="color:${isDone?'var(--sub)':'var(--text)'};text-decoration:${isDone?'line-through':'none'}">${item}</span>
     `
     row.addEventListener('click', () => sendCommand('checkin_toggle', null, item))
     el.appendChild(row)
   })
+}
+
+// ── Planner ───────────────────────────────────────────────────────
+async function loadPlanner() {
+  const d = today()
+  const el = document.getElementById('planner-scroll')
+  el.innerHTML = '<div class="loading">加载中…</div>'
+  try {
+    const res = await fetch(`/planner/${d}`)
+    const data = await res.json()
+    renderPlannerGrid(data.blocks || [])
+  } catch (e) {
+    el.innerHTML = '<div class="empty">加载失败</div>'
+  }
+}
+
+function renderPlannerGrid(blocks) {
+  const el = document.getElementById('planner-scroll')
+  const totalH = (DAY_END - DAY_START) * PX_PER_MIN
+
+  // Build hour labels + grid
+  let labels = ''
+  let lines = ''
+  for (let h = DAY_START / 60; h <= DAY_END / 60; h++) {
+    const y = (h * 60 - DAY_START) * PX_PER_MIN
+    labels += `<div class="time-label" style="top:${y}px">${String(h).padStart(2,'0')}:00</div>`
+    lines  += `<div class="hour-line" style="top:${y}px"></div>`
+    if (h < DAY_END / 60) {
+      lines += `<div class="half-line" style="top:${y + 30 * PX_PER_MIN}px"></div>`
+    }
+  }
+
+  // Build blocks
+  let blockHtml = ''
+  const sorted = [...blocks].sort((a, b) => a.start_min - b.start_min)
+  for (const b of sorted) {
+    const top = (b.start_min - DAY_START) * PX_PER_MIN
+    const h   = (b.end_min - b.start_min) * PX_PER_MIN
+    const c   = b.color || color(b.text)
+    const doneClass = b.done ? ' done' : ''
+    blockHtml += `
+      <div class="timeline-block${doneClass}" data-id="${b.id}"
+        style="top:${top}px;height:${Math.max(h,20)}px;background:${c}"
+        onclick="onBlockTap('${b.id}')">
+        <div class="b-text">${b.text}</div>
+        ${h > 28 ? `<div class="b-time">${minToTime(b.start_min)}–${minToTime(b.end_min)}</div>` : ''}
+      </div>`
+  }
+
+  if (blocks.length === 0) {
+    blockHtml = '<div class="timeline-tap-hint">点右上角 + 添加计划</div>'
+  }
+
+  el.innerHTML = `
+    <div class="timeline-wrap">
+      <div class="time-labels" style="height:${totalH}px">${labels}</div>
+      <div class="timeline-grid" style="height:${totalH}px" id="planner-grid">
+        ${lines}${blockHtml}
+      </div>
+    </div>`
+
+  // Scroll to current time or 8am
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
+  const scrollTo = Math.max(0, (Math.min(nowMin, DAY_END) - DAY_START - 60) * PX_PER_MIN)
+  el.scrollTop = scrollTo
+}
+
+function onBlockTap(id) {
+  const d = today()
+  openModal(`
+    <h2>操作</h2>
+    <div class="block-actions">
+      <button class="action-btn" style="background:#F2F2F7" onclick="toggleBlockDone('${id}')">✓ 标记完成 / 取消</button>
+      <button class="action-btn" style="background:#FFF0F0;color:var(--red)" onclick="deleteBlock('${id}')">删除</button>
+      <button class="action-btn" style="background:#F2F2F7;color:var(--sub)" onclick="closeModal()">取消</button>
+    </div>`)
+}
+
+async function toggleBlockDone(id) {
+  closeModal()
+  await fetch(`/planner/${today()}/block/${id}/toggle`, { method: 'POST' })
+  loadPlanner()
+}
+
+async function deleteBlock(id) {
+  closeModal()
+  await fetch(`/planner/${today()}/block/${id}`, { method: 'DELETE' })
+  loadPlanner()
+}
+
+// Add block modal
+document.getElementById('planner-add-btn').addEventListener('click', () => {
+  const tasks = [...(appState?.work_tasks || []), ...(appState?.life_tasks || [])]
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
+  const snap = Math.round(nowMin / 15) * 15
+  const endSnap = snap + 60
+
+  let taskBtns = tasks.map(t => `
+    <button class="modal-task-btn" data-task="${t}"
+      style="border-left-color:${color(t)};color:${color(t)}"
+      onclick="selectModalTask(this,'${t.replace(/'/g,"\\'")}')">${t}</button>
+  `).join('')
+
+  openModal(`
+    <h2>添加计划块</h2>
+    <div class="modal-task-grid">${taskBtns}</div>
+    <div class="time-row">
+      <div class="time-input-wrap">
+        <label>开始</label>
+        <input type="time" id="m-start" value="${minToTime(snap)}">
+      </div>
+      <div class="time-input-wrap">
+        <label>结束</label>
+        <input type="time" id="m-end" value="${minToTime(endSnap)}">
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" style="background:var(--bg);color:var(--sub)" onclick="closeModal()">取消</button>
+      <button class="btn btn-blue" onclick="submitAddBlock()">添加</button>
+    </div>`)
+})
+
+let selectedTask = null
+function selectModalTask(el, task) {
+  document.querySelectorAll('.modal-task-btn').forEach(b => b.classList.remove('selected'))
+  el.classList.add('selected')
+  selectedTask = task
+}
+
+async function submitAddBlock() {
+  if (!selectedTask) { alert('请选择任务'); return }
+  const startMin = timeToMin(document.getElementById('m-start').value)
+  const endMin   = timeToMin(document.getElementById('m-end').value)
+  if (endMin <= startMin) { alert('结束时间必须晚于开始时间'); return }
+  closeModal()
+  await fetch(`/planner/${today()}/blocks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: selectedTask, color: color(selectedTask), start_min: startMin, end_min: endMin })
+  })
+  selectedTask = null
+  loadPlanner()
 }
 
 // ── Timeline ──────────────────────────────────────────────────────
@@ -426,78 +635,92 @@ async function loadTimeline() {
     const entries = data.entries || []
     const totalMins = entries.reduce((s, e) => s + (e.duration || 0), 0)
     document.getElementById('timeline-total').textContent = totalMins > 0 ? fmtMins(totalMins) : ''
-
-    if (entries.length === 0) {
-      el.innerHTML = '<div class="empty">今天还没有记录</div>'
-      return
-    }
+    if (entries.length === 0) { el.innerHTML = '<div class="empty">今天还没有记录</div>'; return }
     el.innerHTML = ''
     ;[...entries].reverse().forEach(e => {
-      const start = (e.start_time || '').substring(11, 16)
-      const end   = (e.end_time   || '').substring(11, 16)
       const row = document.createElement('div')
       row.className = 'entry-row'
       row.innerHTML = `
         <div class="entry-dot" style="background:${color(e.category)}"></div>
         <div class="entry-info">
           <div class="entry-name">${e.category}</div>
-          <div class="entry-time">${start} – ${end}</div>
+          <div class="entry-time">${(e.start_time||'').substring(11,16)} – ${(e.end_time||'').substring(11,16)}</div>
         </div>
-        <div class="entry-dur">${fmtMins(e.duration || 0)}</div>
-      `
+        <div class="entry-dur">${fmtMins(e.duration||0)}</div>`
       el.appendChild(row)
     })
-  } catch (e) {
-    el.innerHTML = '<div class="empty">加载失败</div>'
-  }
+  } catch (e) { document.getElementById('entries-list').innerHTML = '<div class="empty">加载失败</div>' }
 }
 
-// ── Planner ───────────────────────────────────────────────────────
-async function loadPlanner() {
-  const el = document.getElementById('planner-blocks')
+// ── Stats ─────────────────────────────────────────────────────────
+document.querySelectorAll('.range-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'))
+    btn.classList.add('active')
+    statsDays = parseInt(btn.dataset.days)
+    loadStats()
+  })
+})
+
+async function loadStats() {
+  const el = document.getElementById('stats-content')
   el.innerHTML = '<div class="loading">加载中…</div>'
-  const d = today()
-  document.getElementById('planner-date').textContent = d
-
   try {
-    const res = await fetch(`/planner/${d}`)
-    const data = await res.json()
-    const blocks = (data.blocks || []).slice().sort((a, b) => a.start_min - b.start_min)
-
-    if (blocks.length === 0) {
-      el.innerHTML = '<div class="empty">今天没有计划</div>'
-      return
+    const totals = {}
+    const promises = []
+    for (let i = 0; i < statsDays; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i)
+      const ds = d.toLocaleDateString('sv-SE')
+      promises.push(fetch(`/entries/${ds}`).then(r => r.json()))
     }
+    const results = await Promise.all(promises)
+    for (const data of results) {
+      for (const e of (data.entries || [])) {
+        totals[e.category] = (totals[e.category] || 0) + (e.duration || 0)
+      }
+    }
+    const sorted = Object.entries(totals).sort((a,b) => b[1]-a[1])
+    if (sorted.length === 0) { el.innerHTML = '<div class="empty">暂无数据</div>'; return }
+    const max = sorted[0][1]
     el.innerHTML = ''
-    blocks.forEach(b => {
-      const c = b.color || color(b.text)
+    sorted.forEach(([cat, mins]) => {
       const row = document.createElement('div')
-      row.className = 'block-row'
+      row.className = 'stat-bar-row'
       row.innerHTML = `
-        <div class="block-bar" style="background:${c}"></div>
-        <div class="block-info">
-          <div class="block-text" style="color:${b.done ? 'var(--sub)' : 'var(--text)'};text-decoration:${b.done ? 'line-through' : 'none'}">${b.text}</div>
-          <div class="block-time">${minToTime(b.start_min)} – ${minToTime(b.end_min)}</div>
+        <div class="stat-label" style="color:${color(cat)}">${cat}</div>
+        <div class="stat-bar-wrap">
+          <div class="stat-bar" style="width:${(mins/max*100).toFixed(1)}%;background:${color(cat)}"></div>
         </div>
-        <button class="block-done-btn ${b.done ? 'done' : ''}">${b.done ? '✓' : ''}</button>
-      `
-      row.querySelector('.block-done-btn').addEventListener('click', () => toggleBlock(b.id))
+        <div class="stat-val">${fmtMins(mins)}</div>`
       el.appendChild(row)
     })
-  } catch (e) {
-    el.innerHTML = '<div class="empty">加载失败</div>'
-  }
+  } catch (e) { document.getElementById('stats-content').innerHTML = '<div class="empty">加载失败</div>' }
 }
 
-async function toggleBlock(id) {
-  const d = today()
+// ── Backlog ───────────────────────────────────────────────────────
+async function loadBacklog() {
+  const el = document.getElementById('backlog-list')
+  el.innerHTML = '<div class="loading">加载中…</div>'
   try {
-    await fetch(`/planner/${d}/block/${id}/toggle`, { method: 'POST' })
-  } catch (e) {}
-  loadPlanner()
+    const res = await fetch('/backlog')
+    const data = await res.json()
+    const items = data.items || []
+    if (items.length === 0) { el.innerHTML = '<div class="empty">没有待办事项</div>'; return }
+    el.innerHTML = ''
+    items.forEach((item, i) => {
+      const text = typeof item === 'string' ? item : item.text
+      const c = color(text)
+      const row = document.createElement('div')
+      row.className = 'backlog-item'
+      row.innerHTML = `
+        <div class="backlog-dot" style="background:${c}"></div>
+        <div class="backlog-text">${text}</div>`
+      el.appendChild(row)
+    })
+  } catch (e) { document.getElementById('backlog-list').innerHTML = '<div class="empty">加载失败</div>' }
 }
 
-// ── Init ──────────────────────────────────────────────────────────
+// ── Init ─────────────────────────────────────────────────────────
 loadState()
 setInterval(loadState, 8000)
 </script>

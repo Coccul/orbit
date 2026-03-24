@@ -37,6 +37,7 @@ _HERE = (Path(sys.executable).parent if getattr(sys, 'frozen', False)
          else Path(__file__).parent)
 if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
+import uuid
 import orbit_config
 
 
@@ -768,6 +769,13 @@ class Orbit(rumps.App):
                         self.wfile.write(body)
                     except Exception:
                         self.send_response(404); self.end_headers()
+                elif self.path == "/backlog":
+                    try:
+                        pending = APP_SUPPORT / "pending.json"
+                        items = json.loads(pending.read_text(encoding="utf-8")) if pending.exists() else []
+                        self._send_json({"items": items})
+                    except Exception as e:
+                        self._send_json({"error": str(e)}, 500)
                 elif self.path.startswith("/planner"):
                     parts = [p for p in self.path.split("/") if p]
                     target = parts[1] if len(parts) > 1 else date.today().strftime("%Y-%m-%d")
@@ -781,15 +789,54 @@ class Orbit(rumps.App):
                 else:
                     self.send_response(404); self.end_headers()
 
+            def do_DELETE(self):
+                if self.path.startswith("/planner/") and "/block/" in self.path:
+                    parts = [p for p in self.path.split("/") if p]
+                    target, block_id = parts[1], parts[3]
+                    try:
+                        sched = APP_SUPPORT / "schedules.json"
+                        all_data = json.loads(sched.read_text(encoding="utf-8")) if sched.exists() else {}
+                        day = all_data.setdefault(target, {})
+                        day["blocks"] = [b for b in day.get("blocks", []) if b.get("id") != block_id]
+                        sched.write_text(json.dumps(all_data, ensure_ascii=False, indent=2), encoding="utf-8")
+                        self._send_json({"ok": True})
+                    except Exception as e:
+                        self._send_json({"error": str(e)}, 500)
+                else:
+                    self.send_response(404); self.end_headers()
+
             def do_OPTIONS(self):
                 self.send_response(204)
                 self.send_header("Access-Control-Allow-Origin", "*")
-                self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+                self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
                 self.send_header("Access-Control-Allow-Headers", "Content-Type")
                 self.end_headers()
 
             def do_POST(self):
-                if self.path.startswith("/planner/") and "/block/" in self.path and self.path.endswith("/toggle"):
+                if self.path.startswith("/planner/") and self.path.endswith("/blocks"):
+                    # POST /planner/YYYY-MM-DD/blocks — create block
+                    parts = [p for p in self.path.split("/") if p]
+                    target = parts[1]
+                    n = int(self.headers.get("Content-Length", 0))
+                    try:
+                        data = json.loads(self.rfile.read(n))
+                        sched = APP_SUPPORT / "schedules.json"
+                        all_data = json.loads(sched.read_text(encoding="utf-8")) if sched.exists() else {}
+                        blocks = all_data.setdefault(target, {}).setdefault("blocks", [])
+                        block = {
+                            "id":        uuid.uuid4().hex[:8],
+                            "text":      data.get("text", ""),
+                            "color":     data.get("color", "#94A3B8"),
+                            "start_min": int(data.get("start_min", 480)),
+                            "end_min":   int(data.get("end_min", 540)),
+                            "done":      False,
+                        }
+                        blocks.append(block)
+                        sched.write_text(json.dumps(all_data, ensure_ascii=False, indent=2), encoding="utf-8")
+                        self._send_json({"ok": True, "block": block})
+                    except Exception as e:
+                        self._send_json({"error": str(e)}, 500)
+                elif self.path.startswith("/planner/") and "/block/" in self.path and self.path.endswith("/toggle"):
                     # POST /planner/YYYY-MM-DD/block/{id}/toggle
                     parts = [p for p in self.path.split("/") if p]
                     target, block_id = parts[1], parts[3]
