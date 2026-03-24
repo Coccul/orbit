@@ -746,6 +746,17 @@ class Orbit(rumps.App):
                         })
                     except ValueError:
                         self._send_json({"error": "Invalid date format. Use YYYY-MM-DD"}, 400)
+                elif self.path == "/icon.png":
+                    icon = Path(__file__).parent / "icon.png"
+                    try:
+                        body = icon.read_bytes()
+                        self.send_response(200)
+                        self.send_header("Content-Type", "image/png")
+                        self.send_header("Access-Control-Allow-Origin", "*")
+                        self.end_headers()
+                        self.wfile.write(body)
+                    except Exception:
+                        self.send_response(404); self.end_headers()
                 elif self.path == "/" or self.path == "/index.html":
                     pwa = Path(__file__).parent / "pwa.html"
                     try:
