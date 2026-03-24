@@ -68,8 +68,9 @@
     .time-labels { width: 44px; flex-shrink: 0; position: relative; }
     .time-label { position: absolute; right: 8px; font-size: 10px; color: var(--sub); transform: translateY(-50%); }
     .timeline-grid { flex: 1; position: relative; background: var(--card); border-radius: 10px; overflow: hidden; }
-    .hour-line { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); }
-    .half-line  { position: absolute; left: 0; right: 0; border-top: 1px dashed rgba(0,0,0,0.05); }
+    .hour-line    { position: absolute; left: 0; right: 0; border-top: 1px solid rgba(60,60,67,0.15); }
+    .half-line    { position: absolute; left: 0; right: 0; border-top: 1px solid rgba(60,60,67,0.07); }
+    .quarter-line { position: absolute; left: 0; right: 0; border-top: 1px solid rgba(60,60,67,0.04); }
     .timeline-block {
       position: absolute; left: 2px; right: 2px; border-radius: 6px;
       padding: 4px 6px; font-size: 12px; font-weight: 500; cursor: pointer;
@@ -95,9 +96,16 @@
     .stat-bar { height: 100%; border-radius: 5px; }
     .stat-val { width: 38px; font-size: 12px; color: var(--sub); text-align: right; font-variant-numeric: tabular-nums; }
     /* Backlog */
-    .backlog-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); }
-    .backlog-item:last-child { border-bottom: none; }
-    .backlog-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+    .backlog-wrap { overflow: hidden; position: relative; border-bottom: 1px solid var(--border); background: var(--card); border-radius: 0; }
+    .backlog-wrap:first-child { border-radius: 12px 12px 0 0; }
+    .backlog-wrap:last-child  { border-radius: 0 0 12px 12px; border-bottom: none; }
+    .backlog-wrap:only-child  { border-radius: 12px; }
+    .backlog-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: var(--card); transition: transform 0.2s ease; position: relative; z-index: 1; will-change: transform; }
+    .backlog-actions { position: absolute; right: 0; top: 0; bottom: 0; display: flex; }
+    .backlog-action-btn { border: none; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; padding: 0 16px; color: white; }
+    .backlog-action-btn.schedule { background: var(--blue); }
+    .backlog-action-btn.del      { background: var(--red); }
+    .backlog-dot  { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
     .backlog-meta { font-size: 11px; color: var(--sub); margin-top: 2px; }
     /* Modal */
     #modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: flex-end; justify-content: center; }
@@ -173,8 +181,8 @@
 
   <!-- BACKLOG -->
   <div class="page" id="page-backlog">
-    <div class="page-header"><h1>待办</h1></div>
-    <div class="card" id="backlog-list"><div class="loading">加载中…</div></div>
+    <div class="page-header"><h1>待安排</h1></div>
+    <div id="backlog-list"><div class="loading">加载中…</div></div>
   </div>
 </div>
 
@@ -183,7 +191,7 @@
   <button class="tab" data-page="planner">        <span class="tab-icon">📅</span><span>计划</span></button>
   <button class="tab" data-page="timeline">       <span class="tab-icon">📊</span><span>今日</span></button>
   <button class="tab" data-page="stats">          <span class="tab-icon">📈</span><span>统计</span></button>
-  <button class="tab" data-page="backlog">        <span class="tab-icon">📋</span><span>待办</span></button>
+  <button class="tab" data-page="backlog">        <span class="tab-icon">📋</span><span>待安排</span></button>
 </nav>
 
 <div id="modal-overlay"><div id="modal"></div></div>
@@ -270,7 +278,11 @@ function buildGrid(blocks, containerId, onBlockTap) {
     const y=(h*60-START)*PX
     labels+=`<div class="time-label" style="top:${y}px">${String(h).padStart(2,'0')}:00</div>`
     lines+=`<div class="hour-line" style="top:${y}px"></div>`
-    if(h<END/60) lines+=`<div class="half-line" style="top:${y+30*PX}px"></div>`
+    if(h<END/60) {
+      lines+=`<div class="quarter-line" style="top:${y+15*PX}px"></div>`
+      lines+=`<div class="half-line"    style="top:${y+30*PX}px"></div>`
+      lines+=`<div class="quarter-line" style="top:${y+45*PX}px"></div>`
+    }
   }
   const nm=nowMin(), ny=(Math.min(nm,END)-START)*PX
   const nowHtml=nm>=START&&nm<=END?`<div class="now-line" style="top:${ny}px"><div class="now-dot"></div></div>`:''
@@ -454,16 +466,59 @@ async function loadBacklog() {
   const el=document.getElementById('backlog-list'); el.innerHTML='<div class="loading">加载中…</div>'
   try {
     const r=await fetch('/backlog'); const d=await r.json(); const items=d.items||[]
-    if(!items.length){el.innerHTML='<div class="empty">没有待办事项</div>';return}
+    if(!items.length){el.innerHTML='<div style="background:var(--card);border-radius:12px"><div class="empty">没有待安排的事项</div></div>';return}
     el.innerHTML=''
     items.forEach(item=>{
-      const text=typeof item==='string'?item:item.text
-      const date=item.original_date||''; const reason=item.skip_reason||''
-      const row=document.createElement('div'); row.className='backlog-item'
-      row.innerHTML=`<div class="backlog-dot" style="background:${c(text)}"></div><div><div style="font-size:15px">${text}</div>${date?`<div class="backlog-meta">${date}${reason?' · '+reason:''}</div>`:''}</div>`
-      el.appendChild(row)
+      const text=typeof item==='string'?item:(item.text||'')
+      const id=item.id||''; const date=item.original_date||''; const reason=item.skip_reason||''
+      const wrap=document.createElement('div'); wrap.className='backlog-wrap'
+      wrap.innerHTML=`
+        <div class="backlog-actions">
+          <button class="backlog-action-btn schedule" data-id="${id}" data-task="${text}">排入</button>
+          <button class="backlog-action-btn del"      data-id="${id}">删除</button>
+        </div>
+        <div class="backlog-item">
+          <div class="backlog-dot" style="background:${c(text)}"></div>
+          <div><div style="font-size:15px">${text}</div>${date?`<div class="backlog-meta">${date}${reason?' · '+reason:''}</div>`:''}</div>
+        </div>`
+      // swipe
+      const inner=wrap.querySelector('.backlog-item')
+      const actW=120
+      let sx=0,sy=0,swiped=false
+      inner.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true})
+      inner.addEventListener('touchmove',e=>{
+        const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy
+        if(Math.abs(dx)>Math.abs(dy)){ e.preventDefault(); const tx=Math.max(-actW,Math.min(0,dx+(swiped?-actW:0))); inner.style.transform=`translateX(${tx}px)` }
+      },{passive:false})
+      inner.addEventListener('touchend',e=>{
+        const dx=e.changedTouches[0].clientX-sx
+        if((!swiped&&dx<-40)||(swiped&&dx<0)){ inner.style.transform=`translateX(-${actW}px)`;swiped=true }
+        else{ inner.style.transform='';swiped=false }
+      })
+      // actions
+      wrap.querySelector('.backlog-action-btn.schedule').addEventListener('click',e=>{ inner.style.transform='';swiped=false; scheduleBacklogItem(text) })
+      wrap.querySelector('.backlog-action-btn.del').addEventListener('click',async e=>{ await fetch(`/backlog/${id}`,{method:'DELETE'}); loadBacklog() })
+      el.appendChild(wrap)
     })
-  } catch(e){document.getElementById('backlog-list').innerHTML='<div class="empty">加载失败</div>'}
+  } catch(e){document.getElementById('backlog-list').innerHTML='<div style="background:var(--card);border-radius:12px"><div class="empty">加载失败</div></div>'}
+}
+
+function scheduleBacklogItem(task) {
+  // pre-select task and open add-to-planner modal
+  selTask=task
+  const snap=Math.round(nowMin()/15)*15
+  const tasks=[...(appState?.work_tasks||[]),...(appState?.life_tasks||[])]
+  const taskBtns=tasks.map(t=>`<button class="modal-task-btn${t===task?' selected':''}" data-task="${t}" style="border-left-color:${c(t)};color:${c(t)}${t===task?';border:2px solid var(--blue);background:rgba(0,122,255,0.08)':''}" onclick="selModalTask(this,'${t.replace(/'/g,"\\'")}'">${t}</button>`).join('')
+  openModal(`<h2>排入计划</h2>
+    <div class="modal-task-grid">${taskBtns}</div>
+    <div class="time-row">
+      <div class="time-input-wrap"><label>开始</label><input type="time" id="m-start" value="${m2t(snap)}"></div>
+      <div class="time-input-wrap"><label>结束</label><input type="time" id="m-end"   value="${m2t(snap+60)}"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" style="background:var(--bg);color:var(--sub)" onclick="closeModal()">取消</button>
+      <button class="btn btn-blue" onclick="submitAdd('planner')">排入</button>
+    </div>`)
 }
 
 // ── Init ─────────────────────────────────────────────────────────

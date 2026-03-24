@@ -778,6 +778,9 @@ class Orbit(rumps.App):
                         self._send_json({"items": items})
                     except Exception as e:
                         self._send_json({"error": str(e)}, 500)
+                elif self.path.startswith("/backlog/"):
+                    # GET /backlog/{id} not needed, handled above
+                    self.send_response(404); self.end_headers()
                 elif self.path.startswith("/planner"):
                     parts = [p for p in self.path.split("/") if p]
                     target = parts[1] if len(parts) > 1 else date.today().strftime("%Y-%m-%d")
@@ -792,7 +795,22 @@ class Orbit(rumps.App):
                     self.send_response(404); self.end_headers()
 
             def do_DELETE(self):
-                if self.path.startswith("/entries/"):
+                if self.path.startswith("/backlog/"):
+                    item_id = self.path.split("/")[-1]
+                    try:
+                        pending = APP_SUPPORT / "pending.json"
+                        data = json.loads(pending.read_text(encoding="utf-8")) if pending.exists() else {}
+                        items = data.get("items", []) if isinstance(data, dict) else data
+                        items = [i for i in items if str(i.get("id","")) != item_id]
+                        if isinstance(data, dict):
+                            data["items"] = items
+                        else:
+                            data = {"items": items}
+                        pending.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+                        self._send_json({"ok": True})
+                    except Exception as e:
+                        self._send_json({"error": str(e)}, 500)
+                elif self.path.startswith("/entries/"):
                     entry_id = self.path.split("/")[-1]
                     try:
                         with sqlite3.connect(DB_PATH) as conn:
