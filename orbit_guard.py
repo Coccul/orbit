@@ -606,7 +606,7 @@ class Orbit(rumps.App):
             with sqlite3.connect(DB_PATH) as conn:
                 conn.row_factory = sqlite3.Row  # 使结果可以按列名访问
                 cursor = conn.execute("""
-                    SELECT start_time, end_time, duration, category,
+                    SELECT id, start_time, end_time, duration, category,
                            COALESCE(note, '') as note,
                            COALESCE(status, '已完成') as status
                     FROM entries
@@ -617,6 +617,7 @@ class Orbit(rumps.App):
                 entries = []
                 for row in cursor.fetchall():
                     entries.append({
+                        "id": row["id"],
                         "start_time": row["start_time"],
                         "end_time": row["end_time"],
                         "duration": row["duration"],
@@ -772,7 +773,8 @@ class Orbit(rumps.App):
                 elif self.path == "/backlog":
                     try:
                         pending = APP_SUPPORT / "pending.json"
-                        items = json.loads(pending.read_text(encoding="utf-8")) if pending.exists() else []
+                        data = json.loads(pending.read_text(encoding="utf-8")) if pending.exists() else {}
+                        items = data.get("items", data) if isinstance(data, dict) else data
                         self._send_json({"items": items})
                     except Exception as e:
                         self._send_json({"error": str(e)}, 500)
@@ -790,7 +792,15 @@ class Orbit(rumps.App):
                     self.send_response(404); self.end_headers()
 
             def do_DELETE(self):
-                if self.path.startswith("/planner/") and "/block/" in self.path:
+                if self.path.startswith("/entries/"):
+                    entry_id = self.path.split("/")[-1]
+                    try:
+                        with sqlite3.connect(DB_PATH) as conn:
+                            conn.execute("DELETE FROM entries WHERE id=?", (entry_id,))
+                        self._send_json({"ok": True})
+                    except Exception as e:
+                        self._send_json({"error": str(e)}, 500)
+                elif self.path.startswith("/planner/") and "/block/" in self.path:
                     parts = [p for p in self.path.split("/") if p]
                     target, block_id = parts[1], parts[3]
                     try:
@@ -813,7 +823,27 @@ class Orbit(rumps.App):
                 self.end_headers()
 
             def do_POST(self):
-                if self.path.startswith("/planner/") and self.path.endswith("/blocks"):
+                if self.path == "/entries":
+                    # POST /entries — add manual entry
+                    n = int(self.headers.get("Content-Length", 0))
+                    try:
+                        data = json.loads(self.rfile.read(n))
+                        st  = data.get("start_time")
+                        et  = data.get("end_time")
+                        cat = data.get("category", "")
+                        note = data.get("note", "补录")
+                        dur = data.get("duration")
+                        if dur is None:
+                            from datetime import datetime as _dt
+                            dur = max(1, int((_dt.fromisoformat(et) - _dt.fromisoformat(st)).total_seconds() / 60))
+                        with sqlite3.connect(DB_PATH) as conn:
+                            cur = conn.execute(
+                                "INSERT INTO entries (start_time, end_time, duration, category, note) VALUES (?,?,?,?,?)",
+                                (st, et, dur, cat, note))
+                            self._send_json({"ok": True, "id": cur.lastrowid})
+                    except Exception as e:
+                        self._send_json({"error": str(e)}, 500)
+                elif self.path.startswith("/planner/") and self.path.endswith("/blocks"):
                     # POST /planner/YYYY-MM-DD/blocks — create block
                     parts = [p for p in self.path.split("/") if p]
                     target = parts[1]
